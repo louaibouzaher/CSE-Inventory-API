@@ -14,11 +14,8 @@ app.use(bodyParser.json());
 app.use('/lostobjects', lostObjectsRoutes)
 
 // Connecting to Database
-mongoose.connect(
-  process.env.CONNECT_DB,
-  { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false },
-  () => console.log("Connected to DB")
-);
+const db = require("./app/Configs/db")
+db.InitiateMongoServer()
 
 // Listening on port PORT
 const PORT = process.env.PORT || 4000;
