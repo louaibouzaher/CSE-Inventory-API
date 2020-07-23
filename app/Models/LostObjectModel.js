@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 
 const LostObjectSchema = mongoose.Schema({
-  reportBy: { type: mongoose.Schema.Types.ObjectId, ref: User , required: true },
+  reportBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reportTitle: { type: String, required: true },
   reportBody: { type: String, required: false },
   objectImage: { type: String, required: true },
-  objectId:  { type: mongoose.Schema.Types.ObjectId, ref: Item } //
+  objectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' }, //
 });
 
 const LostObject = mongoose.model("LostObject", LostObjectSchema);

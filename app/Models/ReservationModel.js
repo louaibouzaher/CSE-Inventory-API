@@ -12,7 +12,7 @@ const ReservationSchema = mongoose.Schema({
   startsAt: { type: Date, required: true },
   endsAt: { type: Date, required: true },
   objectsNeeded: [
-    { type: mongoose.Schema.Types.ObjectId, ref: Item, required: true },
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
   ],
   allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: User }],
 });

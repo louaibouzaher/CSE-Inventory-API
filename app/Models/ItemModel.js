@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const itemHistorySchema = mongoose.Schema({
-  takenBy: { type: mongoose.Schema.Types.ObjectId, ref: User , required: true },
+  takenBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' , required: true },
   actionType: { type: String, required: true }, // Action type is either "In" or "Out" or "Reserved"
   actionDate: { type: Date, default: Date.now },
   takenFor: { type: String },
