@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const multerConfig = require("../Configs/MulterConfig");
+const multerConfig = require("../Configs/multerConfig");
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
 
-const lostObject = require("../Models/lostObjectModel");
+const lostObject = require("../Models/LostObjectModel");
 
 // GET Request to All Lost Item
 router.get("/all", async (req, res) => {
