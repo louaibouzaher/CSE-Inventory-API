@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const multerConfig = require("../Configs/multerConfig");
+const fs = require('fs')
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
@@ -50,6 +51,23 @@ router.get("/get/:id", async (req, res) => {
     })
   }
 })
+
+// DELETE Request to remove an item
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const deletedItem = await Item.findById(req.params.id)
+    if (deletedItem) {
+      fs.unlinkSync(`./${deletedItem.objectImage}`)
+      await deletedItem.delete()
+      res.send("Object removed succefully")
+    } else {
+      res.send("Item does not exist");
+    }
+  } catch (err) {
+    console.log(err)
+    res.send(err)
+  }
+});
 
 
 module.exports = router;
