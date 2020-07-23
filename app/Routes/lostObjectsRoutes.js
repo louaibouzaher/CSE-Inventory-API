@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const fs = require("fs");
 const multerConfig = require("../Configs/MulterConfig");
 const upload = multer({
   storage: multerConfig.storage,
@@ -39,15 +40,15 @@ router.post("/add", upload.single("objectImage"), async (req, res, next) => {
 });
 
 // PATCH Request to edit an exisiting anouncement about a lost object
-router.patch("/edit", upload.single("objectImage"), async (req, res) => {
-  const targetObject = await lostObject.find({ _id: req.body.id });
+router.patch("/edit/:id", upload.single("objectImage"), async (req, res) => {
+  const targetObject = await lostObject.find({ _id: req.params.id });
   const correctImage = req.file ? req.file.path : targetObject[0].objectImage; // updated or not by user
 
   if (targetObject) {
     await lostObject.findOneAndUpdate(
       {
         //these two parameters are fixed and both need to be checked
-        _id: req.body.id,
+        _id: req.params.id,
         // foundBy: req.body.userID,
         // DID NOT CHECK YET WITH USER ID
       },
@@ -68,26 +69,24 @@ router.patch("/edit", upload.single("objectImage"), async (req, res) => {
 });
 
 // DELETE Request to remove items found
-router.delete("/delete", async (req, res) => {
-  const deletedObject = await lostObject.find({ _id: req.body.id })
-  if (deletedObject) {
-     await lostObject.findOneAndDelete({
-      _id:req.body.id,
-      // foundBy: req.body.userID,
-      // DID NOT CHECK YET WITH USER ID
-    });
-    // Delete Picture from server 
-
-
-  
-    res.send(202).json({
-      message: "Object removed succefully",
-    });
+router.delete("/delete/:id", async (req, res) => {
+  const deletedObject = await lostObject.find({
+    _id: req.params.id,
+    // foundBy: req.body.userId
+  });
+  console.log(deletedObject);
+  if (deletedObject[0]) {
+    try {
+      await deletedObject[0].delete();
+      res.status(202).send('Object Removed Successfully')
+    } catch (err) {
+      console.log(err);
+      res.sendStatus(404).send('Object Not Found');
+    }
   } else {
-    res.status(404).json({
-      message: "Object not found",
-    });
+    res.status(500).send('Server Error')
   }
+  // Delete Picture from server
 });
 
 module.exports = router;
