@@ -1,14 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const fs = require("fs");
 const multerConfig = require("../Configs/MulterConfig");
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
 
-const lostObject = require("../Models/lostObjectModel");
+const lostObject = require("../Models/LostObjectModel");
 
 // GET Request to All Lost Item
 router.get("/all", async (req, res) => {
@@ -81,7 +80,7 @@ router.delete("/delete/:id", async (req, res) => {
       res.status(202).send('Object Removed Successfully')
     } catch (err) {
       console.log(err);
-      res.sendStatus(404).send('Object Not Found');
+      res.status(404).send('Object Not Found');
     }
   } else {
     res.status(500).send('Server Error')

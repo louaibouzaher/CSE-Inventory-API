@@ -10,6 +10,7 @@ const itemHistorySchema = mongoose.Schema({
 const ItemSchema = mongoose.Schema({
   objectName: { type: String, required: true },
   objectImage: {  type: String, required: true },
+  objectOccurence: { type: Number, required: true, default: 1},
   objectState: { type: String, required: true }, // Broken, Mobile, Immobile 
   itemHistory: [itemHistorySchema], // this field contains an array of all previous transfers of this item
 });
