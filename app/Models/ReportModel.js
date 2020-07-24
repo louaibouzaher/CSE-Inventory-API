@@ -4,7 +4,7 @@ const ReportSchema = mongoose.Schema({
   reportBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' , required: true },
   reportTitle: { type: String, required: true },
   reportImage: { type: String, required: true },
-  reportBody: { type: String, required: false },
+  reportBody: { type: String},
   objectState: { type: String, required: true }, // Broken , Lost 
 });
 
