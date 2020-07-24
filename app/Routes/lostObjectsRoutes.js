@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const multerConfig = require("../Configs/MulterConfig");
+const multerConfig = require("../Configs/multerConfig");
+const fs = require('fs');
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
@@ -18,46 +19,50 @@ router.get("/all", async (req, res) => {
 // POST Request to Add a new Lost Item
 router.post("/add", upload.single("objectImage"), async (req, res, next) => {
   const newLostObject = new lostObject({
-    objectName: req.body.objectName,
+    reportTitle: req.body.reportTitle,
     objectImage: req.file.path,
-    foundBy: req.body.userName,
   });
-  await newLostObject
+  console.log(newLostObject)
+  try {
+    await newLostObject
     .save()
     .then(
-      res.status(201).json({
+      res.send({
+        newLostObject,
         message: "Object Added Successfully",
       })
     )
     .catch((err) => {
       console.log(err);
-      res.status(500).json({
+      res.send({
         error: err,
       });
     });
+  } catch (err) {
+    res.send(err)
+  }
   next();
 });
 
 // PATCH Request to edit an exisiting anouncement about a lost object
 router.patch("/edit/:id", upload.single("objectImage"), async (req, res) => {
-  const targetObject = await lostObject.find({ _id: req.params.id });
-  const correctImage = req.file ? req.file.path : targetObject[0].objectImage; // updated or not by user
+  console.log(req.params.id)
+  const targetObject = await lostObject.findById(req.params.id);
+  console.log(targetObject)
+  const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
 
+  console.log(correctImage)
+  console.log(targetObject.objectImage)
+
+  if (correctImage == req.file.path) {
+    fs.unlinkSync(`./${targetObject.objectImage}`)
+  }
   if (targetObject) {
-    await lostObject.findOneAndUpdate(
-      {
-        //these two parameters are fixed and both need to be checked
-        _id: req.params.id,
-        // foundBy: req.body.userID,
-        // DID NOT CHECK YET WITH USER ID
-      },
-      {
-        // This method is the same as $set in console AKA keeps previous values
-        objectName: req.body.objectName,
-        objectImage: correctImage,
-      }
-    );
+    targetObject.reportTitle = req.body.reportTitle
+    targetObject.objectImage = req.file.path
+    await targetObject.save()
     res.status(202).json({
+      targetObject,
       message: "Object Updated Successfully",
     });
   } else {
@@ -69,14 +74,12 @@ router.patch("/edit/:id", upload.single("objectImage"), async (req, res) => {
 
 // DELETE Request to remove items found
 router.delete("/delete/:id", async (req, res) => {
-  const deletedObject = await lostObject.find({
-    _id: req.params.id,
-    // foundBy: req.body.userId
-  });
+  const deletedObject = await lostObject.findById(req.params.id)
   console.log(deletedObject);
-  if (deletedObject[0]) {
+  if (deletedObject) {
     try {
-      await deletedObject[0].delete();
+      fs.unlinkSync(`./${deletedObject.objectImage}`)
+      await deletedObject.delete();
       res.status(202).send('Object Removed Successfully')
     } catch (err) {
       console.log(err);
