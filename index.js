@@ -7,6 +7,7 @@ require("dotenv/config");
 
 const lostObjectsRoutes = require('./app/Routes/lostObjectsRoutes');
 const itemsRoutes = require('./app/Routes/itemsRoutes')
+const userRoutes = require('./app/Routes/userRoutes')
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 // Routes 
 app.use('/lostobjects', lostObjectsRoutes)
 app.use('/items', itemsRoutes)
+app.use('/users', userRoutes)
 
 // Connecting to Database
 const db = require("./app/Configs/db")
