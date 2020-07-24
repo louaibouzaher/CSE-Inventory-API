@@ -7,6 +7,8 @@ const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
+
+const auth = require("../Middleware/auth")
 const Report = require("../Models/ReportModel");
 
 // GET Request to all stored Reports
@@ -25,19 +27,19 @@ router.get("/all", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const reportRequested = await Report.find({ _id: req.params.id });
-    res.json(...reportRequested);
+    const reportRequested = await Report.findById(req.params.id);
+    res.json(reportRequested);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
   }
 });
 
-router.post("/add", upload.single("reportImage"), async (req, res, next) => {
+router.post("/add", auth, upload.single("reportImage"), async (req, res, next) => {
   const newReport = new Report({
-    reportBy: req.body.userId,
+    reportBy: req.user.id,
     reportTitle: req.body.reportTitle,
-    reportImage: req.body.reportImage,
+    reportImage: req.file.path,
     reportBody: req.body.reportBody,
     objectState: req.body.objectState,
   });
