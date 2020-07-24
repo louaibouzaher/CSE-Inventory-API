@@ -13,7 +13,7 @@ const auth = require("../Middleware/auth")
 
 // GET Request to All Lost Item
 router.get("/all", async (req, res) => {
-  const lostObjects = await lostObject.find();
+  const lostObjects = await lostObject.find().populate("reportBy").populate("objectId");
   res.send(lostObjects);
 });
 
