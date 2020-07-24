@@ -7,10 +7,10 @@ const ReservationSchema = mongoose.Schema({
     required: true,
   },
   reservationTitle: { type: String, required: true },
-  reservationBody: { type: String, required: false },
+  reservationBody: { type: String },
   reservationDate: { type: Date, default: Date.now },
-  startsAt: { type: Date, required: true },
-  endsAt: { type: Date, required: true },
+  // startsAt: { type: Date, required: true },
+  // endsAt: { type: Date, required: true },
   objectsNeeded: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
   ],
