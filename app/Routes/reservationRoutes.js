@@ -96,12 +96,11 @@ router.patch("/edit/:id", auth, async (req, res) => {
 });
 
 // DELETE Request to delete reservation
-router.delete("/delete/:id", async (req, res) => {
-  const deletedReservation = await Reservation.find({ _id: req.params.id });
-  console.log(deletedReservation);
-  if (deletedReservation.length > 0) {
+router.delete("/delete/:id", auth, async (req, res) => {
+  const deletedReservation = await Reservation.findById(req.params.id);
+  if (deletedReservation) {
     try {
-      await deletedReservation[0].delete();
+      await deletedReservation.delete();
       res.json({
         message:'Reservation Deleted'
       });
@@ -113,4 +112,5 @@ router.delete("/delete/:id", async (req, res) => {
     res.sendStatus(404);
   }
 });
+
 module.exports = router;
