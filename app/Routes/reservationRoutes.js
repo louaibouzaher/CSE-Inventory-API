@@ -7,7 +7,7 @@ const Reservation = require("../Models/ReservationModel");
 // GET Request to list all reservations
 router.get("/all", async (req, res) => {
   try {
-    const allReservations = await Reservation.find();
+    const allReservations = await Reservation.find().populate("objectsNeeded").populate("reservationBy").populate("allowedUsers");
     res.json({
       allReservations,
       message: "Reservations sent successfully",
@@ -21,8 +21,8 @@ router.get("/all", async (req, res) => {
 // GET Request for a perticular reservation
 router.get("/:id", async (req, res) => {
   try {
-    const reservationRequested = await Reservation.find({ _id: req.params.id });
-    res.json(...reservationRequested);
+    const reservationRequested = await Reservation.findById(req.params.id).populate("objectsNeeded").populate("reservationBy").populate("allowedUsers")
+    res.json(reservationRequested);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
