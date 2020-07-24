@@ -10,6 +10,17 @@ const upload = multer({
 
 const Item = require("../Models/ItemModel");
 
+
+// GET Request to all Items
+router.get("/all", async (req, res) => {
+  try {
+    const allItems = await Item.find();
+    res.json(allItems);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
 // GET Request to all Mobile Items
 router.get("/mobile", async (req, res) => {
   try {
@@ -41,14 +52,19 @@ router.get("/broken", async (req, res) => {
   }
 });
 
+//GET Request for all Available Items
+// Check the action type of the last Item History
+
 // POST Request to Add a new Item
 router.post("/add", upload.single("objectImage"), async (req, res, next) => {
+  console.log(`Hello ${req.file.path}`)
   const newItem = new Item({
     objectName: req.body.objectName,
     objectImage: req.file.path,
     objectState: req.body.objectState, // Broken, Mobile, Immobile
   });
-  await newItem
+  
+  await newItem 
     .save()
     .then(
       res.status(201).json({
