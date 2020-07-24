@@ -58,36 +58,40 @@ router.post("/add", auth, async (req, res, next) => {
 });
 
 // PATCH Request to edit existing reservation
-router.patch("/edit/:id", async (req, res) => {
+router.patch("/edit/:id", auth, async (req, res) => {
   const originalReservation = await Reservation.findById(req.params.id);
-  try {
-    await Reservation.findByIdAndUpdate(req.params.id, {
-      reservationBy: req.body.userId
-        ? req.body.userId
-        : originalReservation.reservationBy,
-      reservationTitle: req.body.reservationTitle
-        ? req.body.reservationTitle
-        : originalReservation.reservationTitle,
-      reservationBody: req.body.reservationBody
-        ? req.body.reservationBody
-        : originalReservation.reservationBody,
-      // startsAt: req.body.startsAt? req.body.startsAt : originalReservation.startsAt,
-      // endsAt: req.body.endsAt? req.body.endsAt : originalReservation.endsAt,
-      objectsNeeded: req.body.objectsNeeded
-        ? req.body.objectsNeeded
-        : originalReservation.objectNeeded,
-      allowedUsers: req.body.allowedUsers
-        ? req.body.userId
-        : originalReservation.allowedUsers,
-    });
-    const editedReservation = await Reservation.findById(req.params.id);
-    res.json({
-      editedReservation,
-      message: "Reservation Updated Successfully",
-    });
-  } catch (err) {
-    console.log(err);
-    res.sendStatus(500);
+  if (originalReservation) {
+    try {
+      await Reservation.findByIdAndUpdate(req.params.id, {
+        reservationBy: req.user.id,
+        reservationTitle: req.body.reservationTitle
+          ? req.body.reservationTitle
+          : originalReservation.reservationTitle,
+        reservationBody: req.body.reservationBody
+          ? req.body.reservationBody
+          : originalReservation.reservationBody,
+        // startsAt: req.body.startsAt? req.body.startsAt : originalReservation.startsAt,
+        // endsAt: req.body.endsAt? req.body.endsAt : originalReservation.endsAt,
+        objectsNeeded: req.body.objectsNeeded
+          ? req.body.objectsNeeded
+          : originalReservation.objectNeeded,
+        allowedUsers: req.body.allowedUsers
+          ? req.body.userId
+          : originalReservation.allowedUsers,
+      });
+      const editedReservation = await Reservation.findById(req.params.id);
+      res.json({
+        editedReservation,
+        message: "Reservation Updated Successfully",
+      });
+    } catch (err) {
+      console.log(err);
+      res.sendStatus(500);
+    }
+  } else {
+    return res.status(404).json({
+      message: "Reservation does not exist !"
+    })
   }
 });
 
