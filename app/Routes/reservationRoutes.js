@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+
+const auth = require("../Middleware/auth")
 const Reservation = require("../Models/ReservationModel");
 
 // GET Request to list all reservations
@@ -28,9 +30,9 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST Request to add a new reservation
-router.post("/add", async (req, res, next) => {
+router.post("/add", auth, async (req, res, next) => {
   const newReservation = new Reservation({
-    reservationBy: req.body.userId,
+    reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
     reservationBody: req.body.reservationBody,
     // startsAt: req.body.startsAt,
