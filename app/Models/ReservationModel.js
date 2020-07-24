@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const ReservationSchema = mongoose.Schema({
   reservationBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: User,
+    ref: 'User',
     required: true,
   },
   reservationTitle: { type: String, required: true },
@@ -14,7 +14,7 @@ const ReservationSchema = mongoose.Schema({
   objectsNeeded: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
   ],
-  allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: User }],
+  allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 });
 
 const Reservation = mongoose.model("Reservation", ReservationSchema);
