@@ -9,6 +9,7 @@ const upload = multer({
 });
 
 const lostObject = require("../Models/LostObjectModel");
+const auth = require("../Middleware/auth")
 
 // GET Request to All Lost Item
 router.get("/all", async (req, res) => {
@@ -17,10 +18,12 @@ router.get("/all", async (req, res) => {
 });
 
 // POST Request to Add a new Lost Item
-router.post("/add", upload.single("objectImage"), async (req, res, next) => {
+router.post("/add", auth, upload.single("objectImage"), async (req, res, next) => {
   const newLostObject = new lostObject({
     reportTitle: req.body.reportTitle,
     objectImage: req.file.path,
+    reportBody: req.body.reportBody,
+    reportBy: req.user.id
   });
   console.log(newLostObject)
   try {
@@ -45,15 +48,10 @@ router.post("/add", upload.single("objectImage"), async (req, res, next) => {
 });
 
 // PATCH Request to edit an exisiting anouncement about a lost object
-router.patch("/edit/:id", upload.single("objectImage"), async (req, res) => {
-  console.log(req.params.id)
+router.patch("/edit/:id", auth, upload.single("objectImage"), async (req, res) => {
   const targetObject = await lostObject.findById(req.params.id);
-  console.log(targetObject)
   const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
-
-  console.log(correctImage)
-  console.log(targetObject.objectImage)
-
+  
   if (correctImage == req.file.path) {
     fs.unlinkSync(`./${targetObject.objectImage}`)
   }
@@ -73,7 +71,7 @@ router.patch("/edit/:id", upload.single("objectImage"), async (req, res) => {
 });
 
 // DELETE Request to remove items found
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", auth, async (req, res) => {
   const deletedObject = await lostObject.findById(req.params.id)
   console.log(deletedObject);
   if (deletedObject) {
