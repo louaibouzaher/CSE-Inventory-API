@@ -14,7 +14,7 @@ const Report = require("../Models/ReportModel");
 // GET Request to all stored Reports
 router.get("/all", async (req, res) => {
   try {
-    const allReports = await Report.find();
+    const allReports = await Report.find().populate("reportBy");
     res.json({
       allReports,
       message: "All reports sent successfully",
@@ -27,7 +27,7 @@ router.get("/all", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const reportRequested = await Report.findById(req.params.id);
+    const reportRequested = await Report.findById(req.params.id).populate("reportBy");
     res.json(reportRequested);
   } catch (err) {
     console.log(err);
