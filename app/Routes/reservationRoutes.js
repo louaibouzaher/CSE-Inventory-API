@@ -34,6 +34,7 @@ router.get("/:id", async (req, res) => {
     res.sendStatus(500);
   }
 });
+// 
 router.post("/takenow/:id", auth, async (req, res) => {
   const reservationSchema = Joi.object().keys({
     reservationBy: Joi.string().required(),
