@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
 const ReservationSchema = mongoose.Schema({
-  reservationBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+  // reservationBy: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "User",
+  //   required: true,
+  // },
   reservationTitle: { type: String, required: true },
   reservationBody: { type: String },
   reservationDate: { type: Date, default: Date.now },
-  startsAt: { type: String, required: true },
+ // startsAt: { type: String, required: true },
   endsAt: { type: String, required: true },
   objectsNeeded: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: true },

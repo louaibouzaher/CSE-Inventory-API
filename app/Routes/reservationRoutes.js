@@ -1,13 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require("joi");
+const Joi = require("Joi");
 const auth = require("../Middleware/auth");
 const Reservation = require("../Models/ReservationModel");
-
+const Action = require("../Models/ActionModel");
 // GET Request to list all reservations
 router.get("/all", async (req, res) => {
   try {
-    const allReservations = await Reservation.find().populate("objectsNeeded").populate("reservationBy").populate("allowedUsers");
+    const allReservations = await Reservation.find()
+      .populate("objectsNeeded")
+      .populate("reservationBy")
+      .populate("allowedUsers");
     res.json({
       allReservations,
       message: "Reservations sent successfully",
@@ -21,17 +24,87 @@ router.get("/all", async (req, res) => {
 // GET Request for a perticular reservation
 router.get("/:id", async (req, res) => {
   try {
-    const reservationRequested = await Reservation.findById(req.params.id).populate("objectsNeeded").populate("reservationBy").populate("allowedUsers")
+    const reservationRequested = await Reservation.findById(req.params.id)
+      .populate("objectsNeeded")
+      .populate("reservationBy")
+      .populate("allowedUsers");
     res.json(reservationRequested);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
   }
 });
+router.post("/takenow/:id", auth, async (req, res) => {
+  const reservationSchema = Joi.object().keys({
+    reservationBy: Joi.string().required(),
+    reservationTitle: Joi.string().required(),
+    reservationBody: Joi.string(),
+    startsAt: Joi.string().required(),
+    endsAt: Joi.string().required(),
+    objectsNeeded: Joi.array().items(Joi.string()),
+    allowedUsers: Joi.array().items(Joi.string()),
+  });
 
+  const dateStart = new Date();
+  const body = {
+    reservationBy: req.user.id,
+    reservationTitle: req.body.reservationTitle,
+    reservationBody: req.body.reservationBody
+      ? req.body.reservationBody
+      : "noBody",
+    startsAt:
+      `${dateStart.getFullYear}` +
+      "/" +
+      `${dateStart.getMonth}` +
+      "/" +
+      `${dateStart.getDate}`,
+    endsAt: "Date Not Defined", // Taken now without previous reservation
+    objectsNeeded: [`${req.params.id}`],
+    allowedUsers: req.body.allowedUsers ? req.body.allowedUsers : ["NoUsers"],
+  };
+  const result = reservationSchema.validate(body);
+  const { error } = result;
+  const valid = error == null;
+
+  if (!valid) {
+    res.status(422).json({
+      message: "Invalid request",
+      data: body,
+    });
+  }
+
+  try {
+    const newReservation = new Reservation({
+      reservationBy: req.user.id,
+      reservationTitle: req.body.reservationTitle,
+      reservationBody: req.body.reservationBody,
+      startsAt: req.body.startsAt,
+      endsAt: req.body.endsAt,
+      objectsNeeded: req.body.objectsNeeded,
+      allowedUsers: req.body.allowedUsers,
+    });
+    await newReservation.save();
+    const newAction = new Action({
+      reservationId: newReservation._id,
+      done: false,
+    });
+    await newAction.save().then(
+      res.send({
+        newReservation,
+        newAction,
+        message: "Reservation created successfully",
+      })
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: err,
+    });
+  }
+});
 // POST Request to add a new reservation
 router.post("/add", auth, async (req, res, next) => {
-  const reservationSchema = joi.object().keys({
+  const reservationSchema = Joi.object().keys({
     reservationBy: Joi.string().required(),
     reservationTitle: Joi.string().required(),
     reservationBody: Joi.string(),
@@ -43,7 +116,9 @@ router.post("/add", auth, async (req, res, next) => {
   const body = {
     reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
-    reservationBody: req.body.reservationBody,
+    reservationBody: req.body.reservationBody
+      ? req.body.reservationBody
+      : "noBody",
     startsAt: req.body.startsAt,
     endsAt: req.body.endsAt,
     objectsNeeded: req.body.objectsNeeded,
@@ -89,7 +164,7 @@ router.post("/add", auth, async (req, res, next) => {
 // PATCH Request to edit existing reservation
 router.patch("/edit/:id", auth, async (req, res) => {
   const originalReservation = await Reservation.findById(req.params.id);
-  const reservationSchema = joi.object().keys({
+  const reservationSchema = Joi.object().keys({
     reservationBy: Joi.string().required(),
     reservationTitle: Joi.string().required(),
     reservationBody: Joi.string(),
