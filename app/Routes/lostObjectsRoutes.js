@@ -106,27 +106,27 @@ router.patch(
     const targetObject = await lostObject.findById(req.params.id);
     const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
     
-    if (correctImage == req.file.path) {
-      fs.unlinkSync(`./${targetObject.objectImage}`);
-      const oldImage = await Image.findById(targetObject.imageId)
-      await oldImage.delete()
-      var img = fs.readFileSync(req.file.path); 
-      var encode_image = img.toString('base64');
-
-      const finalImg = {
-        contentType: req.file.mimetype,
-        image: Buffer.from(encode_image, 'base64')
-      };
-
-      const image = new Image({
-        finalImg
-      })
-      await image.save()
-      targetObject.imageId = image._id
-    }
     if (targetObject) {
+      if (correctImage == req.file.path) {
+        fs.unlinkSync(`./${targetObject.objectImage}`);
+        const oldImage = await Image.findById(targetObject.imageId)
+        await oldImage.delete()
+        var img = fs.readFileSync(req.file.path); 
+        var encode_image = img.toString('base64');
+  
+        const finalImg = {
+          contentType: req.file.mimetype,
+          image: Buffer.from(encode_image, 'base64')
+        };
+  
+        const image = new Image({
+          finalImg
+        })
+        await image.save()
+        targetObject.imageId = image._id
+      }
       targetObject.reportTitle = req.body.reportTitle;
-      targetObject.objectImage = req.file.path;
+      targetObject.objectImage = correctImage;
       
       await targetObject.save();
       const newAction = new Action({
