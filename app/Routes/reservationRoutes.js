@@ -137,6 +137,24 @@ router.post("/add", auth, async (req, res, next) => {
     });
   }
 
+  const reservations = await Reservation.find()
+
+  for (const reservation of reservations) {
+    for (const object of req.body.objectsNeeded) {
+      if (reservation.objectsNeeded.includes(object)) {
+        let from = new Date(reservation.startsAt.slice(0, 4), reservation.startsAt.slice(5, 7) - 1, reservation.startsAt.slice(8));
+        let to = new Date(reservation.endsAt.slice(0, 4), reservation.endsAt.slice(5, 7) - 1, reservation.endsAt.slice(8));
+        let check = new Date(req.body.startsAt.slice(0, 4), reservation.startsAt.slice(5, 7) - 1, reservation.startsAt.slice(8));
+
+        if (check >= from && check <= to) {
+          return res.status(400).json({
+            msg: "Can't make new reservation"
+          })
+        }
+      }
+    }
+  }
+
   try {
     const newReservation = new Reservation({
       reservationBy: req.user.id,
