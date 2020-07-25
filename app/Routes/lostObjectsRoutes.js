@@ -25,7 +25,7 @@ router.get("/all", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const object = await lostObject.findById(req.params.id).populate("imageId")
-    res.contentType('image/png');
+    //res.contentType('image/png');
     res.send(object.imageId.finalImg.image)
 
   } catch (err) {
@@ -65,13 +65,11 @@ router.post(
     });
     try {
       await newLostObject.save();
-      var img = fs.readFileSync(req.file.path);
-      var encode_image = img.toString('base64');
-      // Define a JSONobject for the image attributes for saving to database
-
+      
       const newAction = new Action({
         lostObjectId: newLostObject._id,
       });
+
       await newAction
         .save()
         .then(
