@@ -27,9 +27,13 @@ router.get("/:id", async (req, res) => {
   try {
     const object = await lostObject.findById(req.params.id).populate("imageId")
     //res.contentType('image/png');
-    //object.imageId.finalImg.image to get the image
-    res.send(object)
+    /*const finalObject = {
+      object,
 
+    }*/
+    //object.imageId.finalImg.image to get the image
+    //res.send(object.imageId.finalImg.image)
+    res.send(object)
   } catch (err) {
     console.log(err)
     res.send(err)
@@ -56,7 +60,7 @@ router.post(
     })
 
     await image.save()
-    
+
     const newLostObject = new lostObject({
       reportTitle: req.body.reportTitle,
       objectImage: req.file.path,
@@ -66,7 +70,7 @@ router.post(
     });
     try {
       await newLostObject.save();
-      
+
       const newAction = new Action({
         lostObjectId: newLostObject._id,
       });
@@ -101,13 +105,29 @@ router.patch(
   async (req, res) => {
     const targetObject = await lostObject.findById(req.params.id);
     const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
-
+    
     if (correctImage == req.file.path) {
       fs.unlinkSync(`./${targetObject.objectImage}`);
+      const oldImage = await Image.findById(targetObject.imageId)
+      await oldImage.delete()
+      var img = fs.readFileSync(req.file.path); 
+      var encode_image = img.toString('base64');
+
+      const finalImg = {
+        contentType: req.file.mimetype,
+        image: Buffer.from(encode_image, 'base64')
+      };
+
+      const image = new Image({
+        finalImg
+      })
+      await image.save()
+      targetObject.imageId = image._id
     }
     if (targetObject) {
       targetObject.reportTitle = req.body.reportTitle;
       targetObject.objectImage = req.file.path;
+      
       await targetObject.save();
       const newAction = new Action({
         lostObjectId: targetObject._id,
@@ -133,6 +153,9 @@ router.delete("/delete/:id", auth, async (req, res) => {
     try {
       fs.unlinkSync(`./${deletedObject.objectImage}`);
       await deletedObject.delete();
+      const oldImage = await Image.findById(targetObject.imageId)
+      await oldImage.delete()
+      
       res.status(202).send("Object Removed Successfully");
     } catch (err) {
       console.log(err);
