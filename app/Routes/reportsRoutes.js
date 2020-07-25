@@ -12,11 +12,12 @@ const upload = multer({
 const auth = require("../Middleware/auth");
 const Report = require("../Models/ReportModel");
 const Action = require("../Models/ActionModel");
+const Image = require("../Models/ImageModel")
 
 // GET Request to all stored Reports
 router.get("/all", async (req, res) => {
   try {
-    const allReports = await Report.find().populate("reportBy");
+    const allReports = await Report.find().populate("reportBy").populate("imageId");
     res.json({
       allReports,
       message: "All reports sent successfully",
@@ -31,7 +32,7 @@ router.get("/:id", async (req, res) => {
   try {
     const reportRequested = await Report.findById(req.params.id).populate(
       "reportBy"
-    );
+    ).populate("imageId");
     res.json(reportRequested);
   } catch (err) {
     console.log(err);
@@ -70,12 +71,27 @@ router.post(
       });
     }
     try {
+      var img = fs.readFileSync(req.file.path);
+      var encode_image = img.toString('base64');
+
+      const finalImg = {
+        contentType: req.file.mimetype,
+        image: Buffer.from(encode_image, 'base64')
+      };
+
+      const image = new Image({
+        finalImg
+      })
+
+      await image.save()
+
       const newReport = new Report({
         reportBy: req.user.id,
         reportTitle: req.body.reportTitle,
         reportImage: req.file.path,
         reportBody: req.body.reportBody,
         objectState: req.body.objectState,
+        imageId: image._id
       });
       await newReport.save();
       const newAction = new Action({
@@ -157,7 +173,7 @@ router.patch(
     }
   }
 );
-router.delete("/delete/:id", auth ,async (req, res) => {
+router.delete("/delete/:id", auth, async (req, res) => {
   const deletedReport = await Report.find({ _id: req.params.id });
   if (deletedReport.length > 0) {
     try {

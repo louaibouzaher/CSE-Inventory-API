@@ -9,11 +9,12 @@ const upload = multer({
 });
 const Joi = require("joi");
 const Item = require("../Models/ItemModel");
+const Image = require("../Models/ImageModel")
 
 // GET Request to all Items
 router.get("/all", async (req, res) => {
   try {
-    const allItems = await Item.find();
+    const allItems = await Item.find().populate("imageId");
     res.json(allItems);
   } catch (err) {
     console.log(err);
@@ -23,7 +24,7 @@ router.get("/all", async (req, res) => {
 // GET Request to all Mobile Items
 router.get("/mobile", async (req, res) => {
   try {
-    const mobileItems = await Item.find({ objectState: "mobile" });
+    const mobileItems = await Item.find({ objectState: "mobile" }).populate("imageId");
     res.json(mobileItems);
   } catch (err) {
     console.log(err);
@@ -33,7 +34,7 @@ router.get("/mobile", async (req, res) => {
 // GET Request to all Immobile Items
 router.get("/immobile", async (req, res) => {
   try {
-    const immobileItems = await Item.find({ objectState: "immobile" });
+    const immobileItems = await Item.find({ objectState: "immobile" }).populate("imageId");
     res.json(immobileItems);
   } catch (err) {
     console.log(err);
@@ -43,7 +44,7 @@ router.get("/immobile", async (req, res) => {
 // GET Request to all Broken Items
 router.get("/broken", async (req, res) => {
   try {
-    const brokenItems = await Item.find({ objectState: "broken" });
+    const brokenItems = await Item.find({ objectState: "broken" }).populate("imageId");
     res.json(brokenItems);
   } catch (err) {
     console.log(err);
@@ -81,11 +82,26 @@ router.post("/add", upload.single("objectImage"), async (req, res, next) => {
   }
 
   try {
+    var img = fs.readFileSync(req.file.path);
+    var encode_image = img.toString('base64');
+
+    const finalImg = {
+      contentType: req.file.mimetype,
+      image: Buffer.from(encode_image, 'base64')
+    };
+
+    const image = new Image({
+      finalImg
+    })
+
+    await image.save()
+    
     const newItem = new Item({
       objectName: req.body.objectName,
       objectDescription: req.body.objectDescription,
       objectImage: req.file.path,
       objectState: req.body.objectState, // Broken, Mobile, Immobile
+      imageId: image._id
     });
 
     await newItem

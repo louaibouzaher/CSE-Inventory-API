@@ -17,7 +17,8 @@ router.get("/all", async (req, res) => {
   const lostObjects = await lostObject
     .find()
     .populate("reportBy")
-    .populate("objectId");
+    .populate("objectId")
+    .populate("imageId")
   res.send(lostObjects);
 });
 
@@ -26,7 +27,8 @@ router.get("/:id", async (req, res) => {
   try {
     const object = await lostObject.findById(req.params.id).populate("imageId")
     //res.contentType('image/png');
-    res.send(object.imageId.finalImg.image)
+    //object.imageId.finalImg.image to get the image
+    res.send(object)
 
   } catch (err) {
     console.log(err)
@@ -54,8 +56,7 @@ router.post(
     })
 
     await image.save()
-    console.log(image)
-
+    
     const newLostObject = new lostObject({
       reportTitle: req.body.reportTitle,
       objectImage: req.file.path,
