@@ -15,6 +15,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 // app.use("./uploads", express.static);
 
+app.get("/", (req, res) => {
+  res.send("Welcome to CSE Inventory API");
+});
 // Routes
 app.use("/lostobjects", lostObjectsRoutes);
 app.use("/items", itemsRoutes);
