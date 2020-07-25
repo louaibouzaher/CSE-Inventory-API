@@ -4,6 +4,7 @@ const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const Reservation = require("../Models/ReservationModel");
 const Action = require("../Models/ActionModel");
+
 // GET Request to list all reservations
 router.get("/all", async (req, res) => {
   try {
@@ -34,8 +35,9 @@ router.get("/:id", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
 //  POST Request for takeNow item
-router.post("/takenow/:id", async (req, res) => {
+router.post("/takenow/:id", auth, async (req, res) => {
   const reservationSchema = Joi.object().keys({
     reservationBy: Joi.string().required(),
     reservationTitle: Joi.string().required(),
@@ -46,19 +48,25 @@ router.post("/takenow/:id", async (req, res) => {
     allowedUsers: Joi.array().items(Joi.string()),
   });
 
-  const dateStart = new Date();
+  var today = new Date();
+  var dd = today.getDate();
+  var mm = today.getMonth() + 1;
+  var yyyy = today.getFullYear();
+  if (dd < 10) {
+    dd = '0' + dd;
+  }
+  if (mm < 10) {
+    mm = '0' + mm;
+  }
+  var dateStart = yyyy + '-' + mm + '-' + dd;
+  
   const body = {
     reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
     reservationBody: req.body.reservationBody
       ? req.body.reservationBody
       : "noBody",
-    startsAt:
-      `${dateStart.getFullYear()}` +
-      "-" +
-      `${dateStart.getMonth()}` +
-      "-" +
-      `${dateStart.getDate()}`,
+    startsAt: dateStart,
     endsAt: "Date Not Defined", // Taken now without previous reservation
     objectsNeeded: [`${req.params.id}`],
     allowedUsers: req.body.allowedUsers ? req.body.allowedUsers : ["NoUsers"],
@@ -74,17 +82,35 @@ router.post("/takenow/:id", async (req, res) => {
     });
   }
 
+  const reservations = await Reservation.find();
+
+  for (const reservation of reservations) {
+    if (reservation.objectsNeeded.includes(req.params.id)) {
+      let from = new Date(
+        reservation.startsAt.slice(0, 4),
+        reservation.startsAt.slice(5, 7) - 1,
+        reservation.startsAt.slice(8)
+      );
+      let to = new Date(
+        reservation.endsAt.slice(0, 4),
+        reservation.endsAt.slice(5, 7) - 1,
+        reservation.endsAt.slice(8)
+      );
+
+      if (today >= from && today <= to) {
+        return res.status(400).json({
+          msg: "Can't make new reservation",
+        });
+      }
+    }
+  }
+
   try {
     const newReservation = new Reservation({
       reservationBy: req.user.id,
       reservationTitle: req.body.reservationTitle,
       reservationBody: req.body.reservationBody,
-      startsAt:
-        `${dateStart.getFullYear}` +
-        "-" +
-        `${dateStart.getMonth}` +
-        "-" +
-        `${dateStart.getDate}`,
+      startsAt: dateStart,
       endsAt: "Date Not Defined",
       objectsNeeded: [`${req.params.id}`],
       allowedUsers: req.body.allowedUsers,
@@ -108,6 +134,7 @@ router.post("/takenow/:id", async (req, res) => {
     });
   }
 });
+
 // POST Request to add a new reservation
 router.post("/add", auth, async (req, res, next) => {
   const reservationSchema = Joi.object().keys({
