@@ -270,22 +270,17 @@ router.patch("/edit/:id", auth, async (req, res) => {
             : originalReservation.allowedUsers,
         });
         const editedReservation = await Reservation.findById(req.params.id);
-        await newReservation.save();
         const newAction = new Action({
-          reservationId: newReservation._id,
+          reservationId: editedReservation._id,
           done: false,
         });
         await newAction.save().then(
           res.send({
-            newReservation,
+            editedReservation,
             newAction,
-            message: "Reservation created successfully",
+            message: "Reservation edited successfully",
           })
         );
-        res.json({
-          editedReservation,
-          message: "Reservation Updated Successfully",
-        });
       } catch (err) {
         console.log(err);
         res.sendStatus(500);
