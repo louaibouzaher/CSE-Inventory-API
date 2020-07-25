@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require("Joi");
+const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const Reservation = require("../Models/ReservationModel");
 const Action = require("../Models/ActionModel");
@@ -34,8 +34,8 @@ router.get("/:id", async (req, res) => {
     res.sendStatus(500);
   }
 });
-// 
-router.post("/takenow/:id", auth, async (req, res) => {
+//  POST Request for takeNow item
+router.post("/takenow/:id", async (req, res) => {
   const reservationSchema = Joi.object().keys({
     reservationBy: Joi.string().required(),
     reservationTitle: Joi.string().required(),
@@ -55,9 +55,9 @@ router.post("/takenow/:id", auth, async (req, res) => {
       : "noBody",
     startsAt:
       `${dateStart.getFullYear}` +
-      "/" +
+      "-" +
       `${dateStart.getMonth}` +
-      "/" +
+      "-" +
       `${dateStart.getDate}`,
     endsAt: "Date Not Defined", // Taken now without previous reservation
     objectsNeeded: [`${req.params.id}`],
@@ -79,9 +79,14 @@ router.post("/takenow/:id", auth, async (req, res) => {
       reservationBy: req.user.id,
       reservationTitle: req.body.reservationTitle,
       reservationBody: req.body.reservationBody,
-      startsAt: req.body.startsAt,
-      endsAt: req.body.endsAt,
-      objectsNeeded: req.body.objectsNeeded,
+      startsAt:
+        `${dateStart.getFullYear}` +
+        "-" +
+        `${dateStart.getMonth}` +
+        "-" +
+        `${dateStart.getDate}`,
+      endsAt: "Date Not Defined",
+      objectsNeeded: [`${req.params.id}`],
       allowedUsers: req.body.allowedUsers,
     });
     await newReservation.save();
@@ -115,7 +120,7 @@ router.post("/add", auth, async (req, res, next) => {
     allowedUsers: Joi.array().items(Joi.string()),
   });
   const body = {
-    reservationBy: req.user.id,
+    //  reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
     reservationBody: req.body.reservationBody
       ? req.body.reservationBody
@@ -137,19 +142,31 @@ router.post("/add", auth, async (req, res, next) => {
     });
   }
 
-  const reservations = await Reservation.find()
+  const reservations = await Reservation.find();
 
   for (const reservation of reservations) {
     for (const object of req.body.objectsNeeded) {
       if (reservation.objectsNeeded.includes(object)) {
-        let from = new Date(reservation.startsAt.slice(0, 4), reservation.startsAt.slice(5, 7) - 1, reservation.startsAt.slice(8));
-        let to = new Date(reservation.endsAt.slice(0, 4), reservation.endsAt.slice(5, 7) - 1, reservation.endsAt.slice(8));
-        let check = new Date(req.body.startsAt.slice(0, 4), reservation.startsAt.slice(5, 7) - 1, reservation.startsAt.slice(8));
+        let from = new Date(
+          reservation.startsAt.slice(0, 4),
+          reservation.startsAt.slice(5, 7) - 1,
+          reservation.startsAt.slice(8)
+        );
+        let to = new Date(
+          reservation.endsAt.slice(0, 4),
+          reservation.endsAt.slice(5, 7) - 1,
+          reservation.endsAt.slice(8)
+        );
+        let check = new Date(
+          req.body.startsAt.slice(0, 4),
+          reservation.startsAt.slice(5, 7) - 1,
+          reservation.startsAt.slice(8)
+        );
 
         if (check >= from && check <= to) {
           return res.status(400).json({
-            msg: "Can't make new reservation"
-          })
+            msg: "Can't make new reservation",
+          });
         }
       }
     }
@@ -165,9 +182,15 @@ router.post("/add", auth, async (req, res, next) => {
       objectsNeeded: req.body.objectsNeeded,
       allowedUsers: req.body.allowedUsers,
     });
-    await newReservation.save().then(
+    await newReservation.save();
+    const newAction = new Action({
+      reservationId: newReservation._id,
+      done: false,
+    });
+    await newAction.save().then(
       res.send({
         newReservation,
+        newAction,
         message: "Reservation created successfully",
       })
     );
@@ -247,6 +270,18 @@ router.patch("/edit/:id", auth, async (req, res) => {
             : originalReservation.allowedUsers,
         });
         const editedReservation = await Reservation.findById(req.params.id);
+        await newReservation.save();
+        const newAction = new Action({
+          reservationId: newReservation._id,
+          done: false,
+        });
+        await newAction.save().then(
+          res.send({
+            newReservation,
+            newAction,
+            message: "Reservation created successfully",
+          })
+        );
         res.json({
           editedReservation,
           message: "Reservation Updated Successfully",
