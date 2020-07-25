@@ -12,12 +12,14 @@ const upload = multer({
 const auth = require("../Middleware/auth");
 const Report = require("../Models/ReportModel");
 const Action = require("../Models/ActionModel");
-const Image = require("../Models/ImageModel")
+const Image = require("../Models/ImageModel");
 
 // GET Request to all stored Reports
 router.get("/all", async (req, res) => {
   try {
-    const allReports = await Report.find().populate("reportBy").populate("imageId");
+    const allReports = await Report.find()
+      .populate("reportBy")
+      .populate("imageId");
     res.json({
       allReports,
       message: "All reports sent successfully",
@@ -30,9 +32,9 @@ router.get("/all", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const reportRequested = await Report.findById(req.params.id).populate(
-      "reportBy"
-    ).populate("imageId");
+    const reportRequested = await Report.findById(req.params.id)
+      .populate("reportBy")
+      .populate("imageId");
     res.json(reportRequested);
   } catch (err) {
     console.log(err);
@@ -72,18 +74,18 @@ router.post(
     }
     try {
       var img = fs.readFileSync(req.file.path);
-      var encode_image = img.toString('base64');
+      var encode_image = img.toString("base64");
 
       const finalImg = {
         contentType: req.file.mimetype,
-        image: Buffer.from(encode_image, 'base64')
+        image: Buffer.from(encode_image, "base64"),
       };
 
       const image = new Image({
-        finalImg
-      })
+        finalImg,
+      });
 
-      await image.save()
+      await image.save();
 
       const newReport = new Report({
         reportBy: req.user.id,
@@ -91,7 +93,7 @@ router.post(
         reportImage: req.file.path,
         reportBody: req.body.reportBody,
         objectState: req.body.objectState,
-        imageId: image._id
+        imageId: image._id,
       });
       await newReport.save();
       const newAction = new Action({
@@ -159,7 +161,7 @@ router.patch(
       });
       const editedReport = await Report.findById(req.params.id);
       const newAction = new Action({
-        reportId: newReport._id,
+        reportId: editedReport._id,
       });
       await newAction.save().then(
         res.json({
@@ -174,10 +176,10 @@ router.patch(
   }
 );
 router.delete("/delete/:id", auth, async (req, res) => {
-  const deletedReport = await Report.find({ _id: req.params.id });
-  if (deletedReport.length > 0) {
+  const deletedReport = await Report.findById(req.params.id);
+  if (deletedReport) {
     try {
-      await deletedReport[0].delete();
+      await deletedReport.delete();
       res.sendStatus(202);
     } catch (err) {
       console.log(err);
