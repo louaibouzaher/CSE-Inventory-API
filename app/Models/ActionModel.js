@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const actionSchema = mongoose.Schema({
+  actionDate: { type: Date, default: Date.now },
   reservationId: { type: mongoose.Schema.Types.ObjectId, ref: "Reservation" },
   reportId: { type: mongoose.Schema.Types.ObjectId, ref: "Report" },
   lostObjectId: { type: mongoose.Schema.Types.ObjectId, ref: "LostObject" },
