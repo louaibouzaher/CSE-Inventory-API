@@ -190,7 +190,7 @@ router.get("/takenby/:id", auth, async (req, res) => {
   }
 });
 // GET Request to get all users filtered
-router.get("/all", async (req, res) => {
+router.get("/all", auth, async (req, res) => {
   try {
     const allUsers = await User.find();
     const filteredAllusers = allUsers.map((user) => ({
