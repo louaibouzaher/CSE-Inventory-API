@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken")
 const Joi = require('joi')
 
 const User = require("../Models/UserModel");
+const auth = require("../Middleware/auth")
 
 router.post("/signup", async (req, res) => {
     const userSchema = Joi.object().keys({
@@ -22,7 +23,7 @@ router.post("/signup", async (req, res) => {
         userLastName: req.body.userLastName,
         phoneNumber: req.body.phoneNumber,
     }
-    
+
     //userSchema.validate(body)
 
     const result = userSchema.validate(body)
@@ -155,5 +156,15 @@ router.post("/login", async (req, res) => {
     }
 }
 )
+
+router.get("/profile", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id)
+        res.json(user);
+    } catch (err) {
+        console.log(err);
+        res.sendStatus(500);
+    }
+})
 
 module.exports = router;
