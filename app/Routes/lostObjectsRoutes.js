@@ -7,7 +7,7 @@ const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
-
+const Action = require('../Models/ActionModel')
 const lostObject = require("../Models/LostObjectModel");
 const auth = require("../Middleware/auth");
 
