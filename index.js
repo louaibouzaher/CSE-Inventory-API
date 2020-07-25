@@ -9,6 +9,7 @@ const lostObjectsRoutes = require("./app/Routes/lostObjectsRoutes");
 const itemsRoutes = require("./app/Routes/itemsRoutes");
 const userRoutes = require("./app/Routes/userRoutes");
 const reservationRoutes = require("./app/Routes/reservationRoutes");
+const actionsRoutes = require("./app/Routes/actionsRoutes");
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -20,6 +21,7 @@ app.use("/items", itemsRoutes);
 app.use("/reports", reportsRoutes);
 app.use("/users", userRoutes);
 app.use("/reservations", reservationRoutes);
+app.use("/actions", actionsRoutes);
 
 // Connecting to Database
 const db = require("./app/Configs/db");
