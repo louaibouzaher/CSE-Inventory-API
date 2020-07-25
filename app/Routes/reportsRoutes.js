@@ -11,6 +11,7 @@ const upload = multer({
 
 const auth = require("../Middleware/auth");
 const Report = require("../Models/ReportModel");
+const Action = require("../Models/ActionModel");
 
 // GET Request to all stored Reports
 router.get("/all", async (req, res) => {
@@ -28,7 +29,9 @@ router.get("/all", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const reportRequested = await Report.findById(req.params.id).populate("reportBy");
+    const reportRequested = await Report.findById(req.params.id).populate(
+      "reportBy"
+    );
     res.json(reportRequested);
   } catch (err) {
     console.log(err);
@@ -74,8 +77,11 @@ router.post(
         reportBody: req.body.reportBody,
         objectState: req.body.objectState,
       });
-      console.log(newReport);
-      await newReport.save().then(
+      await newReport.save();
+      const newAction = new Action({
+        reportId: newReport._id,
+      });
+      await newAction.save().then(
         res.send({
           newReport,
           message: "Report created successfully",
@@ -95,7 +101,6 @@ router.patch(
   auth,
   upload.single("reportImage"),
   async (req, res) => {
-
     const reportSchema = Joi.object().keys({
       reportBy: req.user.id,
       reportTitle: Joi.string().required(),
@@ -137,19 +142,23 @@ router.patch(
           : originalReport.objectState,
       });
       const editedReport = await Report.findById(req.params.id);
-      res.json({
-        editedReport,
-        message: "Report Updated Successfully",
+      const newAction = new Action({
+        reportId: newReport._id,
       });
+      await newAction.save().then(
+        res.json({
+          editedReport,
+          message: "Report Updated Successfully",
+        })
+      );
     } catch (err) {
       console.log(err);
       res.sendStatus(500);
     }
   }
 );
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", auth ,async (req, res) => {
   const deletedReport = await Report.find({ _id: req.params.id });
-  console.log(deletedReport);
   if (deletedReport.length > 0) {
     try {
       await deletedReport[0].delete();
