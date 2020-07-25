@@ -120,7 +120,7 @@ router.post("/add", auth, async (req, res, next) => {
     allowedUsers: Joi.array().items(Joi.string()),
   });
   const body = {
-    //  reservationBy: req.user.id,
+    reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
     reservationBody: req.body.reservationBody
       ? req.body.reservationBody
