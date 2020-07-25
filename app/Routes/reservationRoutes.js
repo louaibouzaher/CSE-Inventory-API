@@ -54,11 +54,11 @@ router.post("/takenow/:id", async (req, res) => {
       ? req.body.reservationBody
       : "noBody",
     startsAt:
-      `${dateStart.getFullYear}` +
+      `${dateStart.getFullYear()}` +
       "-" +
-      `${dateStart.getMonth}` +
+      `${dateStart.getMonth()}` +
       "-" +
-      `${dateStart.getDate}`,
+      `${dateStart.getDate()}`,
     endsAt: "Date Not Defined", // Taken now without previous reservation
     objectsNeeded: [`${req.params.id}`],
     allowedUsers: req.body.allowedUsers ? req.body.allowedUsers : ["NoUsers"],
