@@ -11,10 +11,12 @@ const upload = multer({
 const Joi = require("joi");
 const Item = require("../Models/ItemModel");
 
+const {cloud_name, api_key, api_secret} = require("../Configs/config")
+
 cloudinary.config({
-  cloud_name: 'billel',
-  api_key: '371563596157575',
-  api_secret: 'APHQroi58EHh3cjShvxl7UrryOQ'
+  cloud_name: cloud_name,
+  api_key: api_key,
+  api_secret: api_secret
 });
 
 // GET Request to all Items
