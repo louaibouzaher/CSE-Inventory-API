@@ -3,9 +3,19 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
+const cloudinary = require('cloudinary');
+
 const Reservation = require("../Models/ReservationModel");
 const User = require("../Models/UserModel");
 const auth = require("../Middleware/auth");
+
+const {cloud_name, api_key, api_secret} = require("../Configs/config")
+
+cloudinary.config({
+  cloud_name: cloud_name,
+  api_key: api_key,
+  api_secret: api_secret
+});
 
 router.post("/signup", async (req, res) => {
   const userSchema = Joi.object().keys({
@@ -26,6 +36,7 @@ router.post("/signup", async (req, res) => {
     userLastName: req.body.userLastName,
     phoneNumber: req.body.phoneNumber,
   };
+  console.log(body)
 
   //userSchema.validate(body)
 
@@ -55,42 +66,42 @@ router.post("/signup", async (req, res) => {
   }
 
   try {
-    user = new User({
-      email: req.body.email,
-      password: req.body.password,
-      phoneNumber: req.body.phoneNumber,
-      userFirstName: req.body.userFirstName,
-      userLastName: req.body.userLastName,
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-
-    await user.save();
-
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      "randomString",
-      {
-        expiresIn: 10000,
-      },
-      (err, token) => {
-        if (err) throw err;
-        res.status(200).json({
-          token,
-          user,
-        });
-      }
-    );
+        user = new User({
+          email: req.body.email,
+          password: req.body.password,
+          phoneNumber: req.body.phoneNumber,
+          userFirstName: req.body.userFirstName,
+          userLastName: req.body.userLastName,
+           });
+    
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+    
+        await user.save();
+    
+        const payload = {
+          user: {
+            id: user.id,
+          },
+        };
+    
+        jwt.sign(
+          payload,
+          "randomString",
+          {
+            expiresIn: 10000,
+          },
+          (err, token) => {
+            if (err) throw err;
+            return res.status(200).json({
+              token,
+              user,
+            });
+          }
+        );
   } catch (err) {
     console.log(err.message);
-    res.status(500).send("Error in Saving");
+    //return res.send("Error in Saving");
   }
 });
 
