@@ -3,13 +3,19 @@ const router = express.Router();
 const multer = require("multer");
 const multerConfig = require("../Configs/multerConfig");
 const fs = require("fs");
+const cloudinary = require('cloudinary');
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
 const Joi = require("joi");
 const Item = require("../Models/ItemModel");
-const Image = require("../Models/ImageModel")
+
+cloudinary.config({
+  cloud_name: 'billel',
+  api_key: '371563596157575',
+  api_secret: 'APHQroi58EHh3cjShvxl7UrryOQ'
+});
 
 // GET Request to all Items
 router.get("/all", async (req, res) => {
@@ -80,43 +86,31 @@ router.post("/add", upload.single("objectImage"), async (req, res, next) => {
       data: body,
     });
   }
-
+  
   try {
-    var img = fs.readFileSync(req.file.path);
-    var encode_image = img.toString('base64');
-
-    const finalImg = {
-      contentType: req.file.mimetype,
-      image: Buffer.from(encode_image, 'base64')
-    };
-
-    const image = new Image({
-      finalImg
-    })
-
-    await image.save()
-    
-    const newItem = new Item({
-      objectName: req.body.objectName,
-      objectDescription: req.body.objectDescription,
-      objectImage: req.file.path,
-      objectState: req.body.objectState, // Broken, Mobile, Immobile
-      imageId: image._id
-    });
-
-    await newItem
-      .save()
-      .then(
-        res.status(201).json({
-          newItem,
-          message: "Item Added Successfully",
-        })
-      )
-     
+    console.log("hello")
+    cloudinary.uploader.upload(req.file.path,
+      async (image) => {
+        const newItem = new Item({
+          objectName: req.body.objectName,
+          objectDescription: req.body.objectDescription,
+          objectImage: image.url,
+          objectState: req.body.objectState, // Broken, Mobile, Immobile
+        });
+        
+        await newItem
+          .save()
+          .then(
+            res.status(201).json({
+              newItem,
+              message: "Item Added Successfully",
+            })
+          )
+      })
   } catch (err) {
+    console.log(err)
     res.status(500);
   }
-  next();
 });
 
 // Get Request to get an Item specified by Id
