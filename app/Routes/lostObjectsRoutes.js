@@ -4,6 +4,7 @@ const multer = require("multer");
 const multerConfig = require("../Configs/multerConfig");
 const fs = require("fs");
 const Joi = require("joi");
+const cloudinary = require('cloudinary');
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
@@ -12,6 +13,12 @@ const Action = require("../Models/ActionModel");
 const lostObject = require("../Models/LostObjectModel");
 const Image = require("../Models/ImageModel");
 const auth = require("../Middleware/auth");
+
+cloudinary.config({
+  cloud_name: 'billel',
+  api_key: '371563596157575',
+  api_secret: 'APHQroi58EHh3cjShvxl7UrryOQ'
+});
 
 // GET Request to All Lost Item
 router.get("/all", async (req, res) => {
@@ -47,6 +54,7 @@ router.post(
   auth,
   upload.single("objectImage"),
   async (req, res, next) => {
+    /*
     var img = fs.readFileSync(req.file.path);
     var encode_image = img.toString("base64");
 
@@ -59,21 +67,19 @@ router.post(
       finalImg,
     });
 
-    await image.save();
+    await image.save();*/
 
     const lostObjectSchema = Joi.object().keys({
       reportTitle: Joi.string().required(),
       objectImage: Joi.string().required(),
       reportBody: Joi.string(),
       reportBy: Joi.string().required(),
-      imageId: Joi.string().required(),
     });
     const body = {
       reportBy: req.user.id,
       reportTitle: req.body.reportTitle,
-      reportImage: req.file.path,
+      objectImage: req.file.path,
       reportBody: req.body.reportBody,
-      imageId: image._id,
     };
     const result = lostObjectSchema.validate(body);
 
@@ -86,35 +92,30 @@ router.post(
         data: body,
       });
     }
-    const newLostObject = new lostObject({
-      reportTitle: req.body.reportTitle,
-      objectImage: req.file.path,
-      reportBody: req.body.reportBody,
-      reportBy: req.user.id,
-      imageId: image._id,
-    });
+
     try {
-      await newLostObject.save();
+      cloudinary.uploader.upload(req.file.path,
+        async (image) => {
+          const newLostObject = new lostObject({
+            reportTitle: req.body.reportTitle,
+            objectImage: image.url,
+            reportBody: req.body.reportBody,
+            reportBy: req.user.id,
+          });
+          await newLostObject.save();
+          console.log(newLostObject)
 
-      const newAction = new Action({
-        lostObjectId: newLostObject._id,
-      });
+          const newAction = new Action({
+            lostObjectId: newLostObject._id,
+          });
 
-      await newAction
-        .save()
-        .then(
+          await newAction.save()
           res.send({
             newLostObject,
-            newAction,
             message: "Object Added Successfully",
           })
-        )
-        .catch((err) => {
-          console.log(err);
-          res.send({
-            error: err,
-          });
-        });
+          res.end()
+        })
     } catch (err) {
       res.send(err);
     }
@@ -212,7 +213,7 @@ router.delete("/delete/:id", auth, async (req, res) => {
         lostObjectId: deletedObject._id,
       });
       actionRelated.done = true,
-      await actionRelated.save()
+        await actionRelated.save()
       await deletedObject.delete();
       res.status(202).send("Object Removed Successfully");
     } catch (err) {

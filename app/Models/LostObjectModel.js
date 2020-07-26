@@ -5,7 +5,6 @@ const LostObjectSchema = mongoose.Schema({
   reportTitle: { type: String, required: true },
   reportBody: { type: String, required: false },
   objectImage: { type: String, required: true },
-  imageId: { type: mongoose.Schema.Types.ObjectId, ref: 'Image',},
   objectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' }, // in case it's a CSE Item
 });
 
