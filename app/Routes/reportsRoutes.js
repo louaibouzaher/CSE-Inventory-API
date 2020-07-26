@@ -4,6 +4,7 @@ const multer = require("multer");
 const multerConfig = require("../Configs/multerConfig");
 const fs = require("fs");
 const Joi = require("joi");
+const cloudinary = require('cloudinary');
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
@@ -13,6 +14,12 @@ const auth = require("../Middleware/auth");
 const Report = require("../Models/ReportModel");
 const Action = require("../Models/ActionModel");
 const Image = require("../Models/ImageModel");
+
+cloudinary.config({
+  cloud_name: 'billel',
+  api_key: '371563596157575',
+  api_secret: 'APHQroi58EHh3cjShvxl7UrryOQ'
+});
 
 // GET Request to all stored Reports
 router.get("/all", async (req, res) => {
@@ -73,43 +80,30 @@ router.post(
       });
     }
     try {
-      var img = fs.readFileSync(req.file.path);
-      var encode_image = img.toString("base64");
-
-      const finalImg = {
-        contentType: req.file.mimetype,
-        image: Buffer.from(encode_image, "base64"),
-      };
-
-      const image = new Image({
-        finalImg,
-      });
-
-      await image.save();
-
-      const newReport = new Report({
-        reportBy: req.user.id,
-        reportTitle: req.body.reportTitle,
-        reportImage: req.file.path,
-        reportBody: req.body.reportBody,
-        objectState: req.body.objectState,
-        imageId: image._id,
-      });
-      await newReport.save();
-      const newAction = new Action({
-        reportId: newReport._id,
-      });
-      await newAction.save().then(
-        res.send({
-          newReport,
-          message: "Report created successfully",
+      cloudinary.uploader.upload(req.file.path,
+        async (image) => {
+          const newReport = new Report({
+            reportBy: req.user.id,
+            reportTitle: req.body.reportTitle,
+            reportImage: image.url,
+            reportBody: req.body.reportBody,
+            objectState: req.body.objectState,
+          });
+          await newReport.save();
+          const newAction = new Action({
+            reportId: newReport._id,
+          });
+          await newAction.save()
+          return res.send({
+            newReport,
+            newAction,
+            message: "Report created successfully",
+          })
         })
-      );
     } catch (err) {
       console.log(err);
-      res.sendStatus(500);
+      res.send(err);
     }
-    next();
   }
 );
 
@@ -120,7 +114,7 @@ router.patch(
   upload.single("reportImage"),
   async (req, res) => {
     const reportSchema = Joi.object().keys({
-      reportBy:Joi.string().required(),
+      reportBy: Joi.string().required(),
       reportTitle: Joi.string().required(),
       reportImage: Joi.string(),
       reportBody: Joi.string(),
@@ -139,7 +133,7 @@ router.patch(
     const valid = error == null;
 
     if (!valid) {
-     return res.status(422).json({
+      return res.status(422).json({
         message: "Invalid request",
         data: body,
       });
@@ -186,7 +180,7 @@ router.delete("/delete/:id", auth, async (req, res) => {
         reportId: deletedReport._id,
       });
       actionRelated.done = true,
-      await actionRelated.save()
+        await actionRelated.save()
       await deletedReport.delete();
       res.sendStatus(202);
     } catch (err) {
