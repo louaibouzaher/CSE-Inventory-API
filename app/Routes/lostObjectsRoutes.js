@@ -11,7 +11,6 @@ const upload = multer({
 });
 const Action = require("../Models/ActionModel");
 const lostObject = require("../Models/LostObjectModel");
-const Image = require("../Models/ImageModel");
 const auth = require("../Middleware/auth");
 
 cloudinary.config({
@@ -26,7 +25,6 @@ router.get("/all", async (req, res) => {
     .find()
     .populate("reportBy")
     .populate("objectId")
-    .populate("imageId");
   res.send(lostObjects);
 });
 

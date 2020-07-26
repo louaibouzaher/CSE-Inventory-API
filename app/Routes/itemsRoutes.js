@@ -20,7 +20,7 @@ cloudinary.config({
 // GET Request to all Items
 router.get("/all", async (req, res) => {
   try {
-    const allItems = await Item.find().populate("imageId");
+    const allItems = await Item.find()
     res.json(allItems);
   } catch (err) {
     console.log(err);
@@ -30,7 +30,7 @@ router.get("/all", async (req, res) => {
 // GET Request to all Mobile Items
 router.get("/mobile", async (req, res) => {
   try {
-    const mobileItems = await Item.find({ objectState: "mobile" }).populate("imageId");
+    const mobileItems = await Item.find({ objectState: "mobile" })
     res.json(mobileItems);
   } catch (err) {
     console.log(err);
@@ -40,7 +40,7 @@ router.get("/mobile", async (req, res) => {
 // GET Request to all Immobile Items
 router.get("/immobile", async (req, res) => {
   try {
-    const immobileItems = await Item.find({ objectState: "immobile" }).populate("imageId");
+    const immobileItems = await Item.find({ objectState: "immobile" })
     res.json(immobileItems);
   } catch (err) {
     console.log(err);
@@ -50,7 +50,7 @@ router.get("/immobile", async (req, res) => {
 // GET Request to all Broken Items
 router.get("/broken", async (req, res) => {
   try {
-    const brokenItems = await Item.find({ objectState: "broken" }).populate("imageId");
+    const brokenItems = await Item.find({ objectState: "broken" })
     res.json(brokenItems);
   } catch (err) {
     console.log(err);

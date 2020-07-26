@@ -13,7 +13,6 @@ const upload = multer({
 const auth = require("../Middleware/auth");
 const Report = require("../Models/ReportModel");
 const Action = require("../Models/ActionModel");
-const Image = require("../Models/ImageModel");
 
 cloudinary.config({
   cloud_name: 'billel',
@@ -26,7 +25,6 @@ router.get("/all", async (req, res) => {
   try {
     const allReports = await Report.find()
       .populate("reportBy")
-      .populate("imageId");
     res.json({
       allReports,
       message: "All reports sent successfully",
@@ -41,7 +39,6 @@ router.get("/:id", async (req, res) => {
   try {
     const reportRequested = await Report.findById(req.params.id)
       .populate("reportBy")
-      .populate("imageId");
     res.json(reportRequested);
   } catch (err) {
     console.log(err);
