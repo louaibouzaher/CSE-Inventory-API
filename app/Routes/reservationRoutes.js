@@ -76,7 +76,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
   const valid = error == null;
 
   if (!valid) {
-    res.status(422).json({
+    return res.status(422).json({
       message: "Invalid request",
       data: body,
     });
@@ -163,7 +163,7 @@ router.post("/add", auth, async (req, res, next) => {
   const valid = error == null;
 
   if (!valid) {
-    res.status(422).json({
+    return res.status(422).json({
       message: "Invalid request",
       data: body,
     });
@@ -328,6 +328,11 @@ router.delete("/delete/:id", auth, async (req, res) => {
   const deletedReservation = await Reservation.findById(req.params.id);
   if (deletedReservation) {
     try {
+      const actionRelated = await Action.findOne({
+        reservationId: deletedReservation._id,
+      });
+      actionRelated.done = true,
+      await actionRelated.save()
       await deletedReservation.delete();
       res.json({
         message: "Reservation Deleted",

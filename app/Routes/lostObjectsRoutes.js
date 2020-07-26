@@ -3,13 +3,14 @@ const router = express.Router();
 const multer = require("multer");
 const multerConfig = require("../Configs/multerConfig");
 const fs = require("fs");
+const Joi = require("joi");
 const upload = multer({
   storage: multerConfig.storage,
   fileFilter: multerConfig.fileFilter,
 });
-const Action = require('../Models/ActionModel')
+const Action = require("../Models/ActionModel");
 const lostObject = require("../Models/LostObjectModel");
-const Image = require("../Models/ImageModel")
+const Image = require("../Models/ImageModel");
 const auth = require("../Middleware/auth");
 
 // GET Request to All Lost Item
@@ -18,14 +19,14 @@ router.get("/all", async (req, res) => {
     .find()
     .populate("reportBy")
     .populate("objectId")
-    .populate("imageId")
+    .populate("imageId");
   res.send(lostObjects);
 });
 
 //GET one lost object
 router.get("/:id", async (req, res) => {
   try {
-    const object = await lostObject.findById(req.params.id).populate("imageId")
+    const object = await lostObject.findById(req.params.id).populate("imageId");
     //res.contentType('image/png');
     /*const finalObject = {
       object,
@@ -33,13 +34,12 @@ router.get("/:id", async (req, res) => {
     }*/
     //object.imageId.finalImg.image to get the image
     //res.send(object.imageId.finalImg.image)
-    res.send(object)
+    res.send(object);
   } catch (err) {
-    console.log(err)
-    res.send(err)
+    console.log(err);
+    res.send(err);
   }
-})
-
+});
 
 // POST Request to Add a new Lost Item
 router.post(
@@ -48,25 +48,50 @@ router.post(
   upload.single("objectImage"),
   async (req, res, next) => {
     var img = fs.readFileSync(req.file.path);
-    var encode_image = img.toString('base64');
+    var encode_image = img.toString("base64");
 
     const finalImg = {
       contentType: req.file.mimetype,
-      image: Buffer.from(encode_image, 'base64')
+      image: Buffer.from(encode_image, "base64"),
     };
 
     const image = new Image({
-      finalImg
-    })
+      finalImg,
+    });
 
-    await image.save()
+    await image.save();
 
+    const lostObjectSchema = Joi.object().keys({
+      reportTitle: Joi.string().required(),
+      objectImage: Joi.string().required(),
+      reportBody: Joi.string(),
+      reportBy: Joi.string().required(),
+      imageId: Joi.string().required(),
+    });
+    const body = {
+      reportBy: req.user.id,
+      reportTitle: req.body.reportTitle,
+      reportImage: req.file.path,
+      reportBody: req.body.reportBody,
+      imageId: image._id,
+    };
+    const result = lostObjectSchema.validate(body);
+
+    const { error } = result;
+    const valid = error == null;
+
+    if (!valid) {
+      return res.status(422).json({
+        message: "Invalid request",
+        data: body,
+      });
+    }
     const newLostObject = new lostObject({
       reportTitle: req.body.reportTitle,
       objectImage: req.file.path,
       reportBody: req.body.reportBody,
       reportBy: req.user.id,
-      imageId: image._id
+      imageId: image._id,
     });
     try {
       await newLostObject.save();
@@ -105,29 +130,58 @@ router.patch(
   async (req, res) => {
     const targetObject = await lostObject.findById(req.params.id);
     const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
-    
+
     if (targetObject) {
       if (correctImage == req.file.path) {
         fs.unlinkSync(`./${targetObject.objectImage}`);
-        const oldImage = await Image.findById(targetObject.imageId)
-        await oldImage.delete()
-        var img = fs.readFileSync(req.file.path); 
-        var encode_image = img.toString('base64');
-  
+        const oldImage = await Image.findById(targetObject.imageId);
+        await oldImage.delete();
+        var img = fs.readFileSync(req.file.path);
+        var encode_image = img.toString("base64");
+
         const finalImg = {
           contentType: req.file.mimetype,
-          image: Buffer.from(encode_image, 'base64')
+          image: Buffer.from(encode_image, "base64"),
         };
-  
-        const image = new Image({
-          finalImg
-        })
-        await image.save()
-        targetObject.imageId = image._id
+
+        var image = new Image({
+          finalImg,
+        });
+        await image.save();
+        targetObject.imageId = image._id;
       }
-      targetObject.reportTitle = req.body.reportTitle;
+      const lostObjectSchema = Joi.object().keys({
+        reportTitle: Joi.string().required(),
+        objectImage: Joi.string().required(),
+        reportBody: Joi.string(),
+        reportBy: Joi.string().required(),
+        imageId: Joi.string().required(),
+      });
+      const body = {
+        reportBy: req.user.id,
+        reportTitle: req.body.reportTitle
+          ? req.body.reportTitle
+          : targetObject.reportTitle,
+        reportImage: correctImage,
+        reportBody: req.body.reportBody
+          ? req.body.reportBody
+          : targetObject.reportBody,
+        imageId: targetObject.imageId,
+      };
+      const result = lostObjectSchema.validate(body);
+
+      const { error } = result;
+      const valid = error == null;
+
+      if (!valid) {
+        return res.status(422).json({
+          message: "Invalid request",
+          data: body,
+        });
+      }
+      targetObject.reportTitle = body.reportTitle;
+      targetObject.reportBody = body.reportBody;
       targetObject.objectImage = correctImage;
-      
       await targetObject.save();
       const newAction = new Action({
         lostObjectId: targetObject._id,
@@ -152,10 +206,14 @@ router.delete("/delete/:id", auth, async (req, res) => {
   if (deletedObject) {
     try {
       fs.unlinkSync(`./${deletedObject.objectImage}`);
+      const oldImage = await Image.findById(deletedObject.imageId);
+      await oldImage.delete();
+      const actionRelated = await Action.findOne({
+        lostObjectId: deletedObject._id,
+      });
+      actionRelated.done = true,
+      await actionRelated.save()
       await deletedObject.delete();
-      const oldImage = await Image.findById(targetObject.imageId)
-      await oldImage.delete()
-      
       res.status(202).send("Object Removed Successfully");
     } catch (err) {
       console.log(err);

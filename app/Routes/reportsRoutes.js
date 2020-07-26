@@ -67,7 +67,7 @@ router.post(
     const valid = error == null;
 
     if (!valid) {
-      res.status(422).json({
+      return res.status(422).json({
         message: "Invalid request",
         data: body,
       });
@@ -120,7 +120,7 @@ router.patch(
   upload.single("reportImage"),
   async (req, res) => {
     const reportSchema = Joi.object().keys({
-      reportBy: req.user.id,
+      reportBy:Joi.string().required(),
       reportTitle: Joi.string().required(),
       reportImage: Joi.string(),
       reportBody: Joi.string(),
@@ -139,7 +139,7 @@ router.patch(
     const valid = error == null;
 
     if (!valid) {
-      res.status(422).json({
+     return res.status(422).json({
         message: "Invalid request",
         data: body,
       });
@@ -179,6 +179,14 @@ router.delete("/delete/:id", auth, async (req, res) => {
   const deletedReport = await Report.findById(req.params.id);
   if (deletedReport) {
     try {
+      fs.unlinkSync(`./${deletedReport.reportImage}`);
+      const oldImage = await Image.findById(deletedReport.imageId);
+      await oldImage.delete();
+      const actionRelated = await Action.findOne({
+        reportId: deletedReport._id,
+      });
+      actionRelated.done = true,
+      await actionRelated.save()
       await deletedReport.delete();
       res.sendStatus(202);
     } catch (err) {
