@@ -54,20 +54,6 @@ router.post(
   auth,
   upload.single("objectImage"),
   async (req, res, next) => {
-    /*
-    var img = fs.readFileSync(req.file.path);
-    var encode_image = img.toString("base64");
-
-    const finalImg = {
-      contentType: req.file.mimetype,
-      image: Buffer.from(encode_image, "base64"),
-    };
-
-    const image = new Image({
-      finalImg,
-    });
-
-    await image.save();*/
 
     const lostObjectSchema = Joi.object().keys({
       reportTitle: Joi.string().required(),
@@ -92,7 +78,6 @@ router.post(
         data: body,
       });
     }
-
     try {
       cloudinary.uploader.upload(req.file.path,
         async (image) => {
@@ -102,24 +87,23 @@ router.post(
             reportBody: req.body.reportBody,
             reportBy: req.user.id,
           });
-          await newLostObject.save();
-          console.log(newLostObject)
+          await newLostObject.save()
 
           const newAction = new Action({
             lostObjectId: newLostObject._id,
           });
 
           await newAction.save()
-          res.send({
+
+          return res.send({
             newLostObject,
+            newAction,
             message: "Object Added Successfully",
           })
-          res.end()
         })
     } catch (err) {
-      res.send(err);
+      console.log(err)
     }
-    next();
   }
 );
 
@@ -133,24 +117,6 @@ router.patch(
     const correctImage = req.file ? req.file.path : targetObject.objectImage; // updated or not by user
 
     if (targetObject) {
-      if (correctImage == req.file.path) {
-        fs.unlinkSync(`./${targetObject.objectImage}`);
-        const oldImage = await Image.findById(targetObject.imageId);
-        await oldImage.delete();
-        var img = fs.readFileSync(req.file.path);
-        var encode_image = img.toString("base64");
-
-        const finalImg = {
-          contentType: req.file.mimetype,
-          image: Buffer.from(encode_image, "base64"),
-        };
-
-        var image = new Image({
-          finalImg,
-        });
-        await image.save();
-        targetObject.imageId = image._id;
-      }
       const lostObjectSchema = Joi.object().keys({
         reportTitle: Joi.string().required(),
         objectImage: Joi.string().required(),
@@ -163,7 +129,7 @@ router.patch(
         reportTitle: req.body.reportTitle
           ? req.body.reportTitle
           : targetObject.reportTitle,
-        reportImage: correctImage,
+        objectImage: correctImage,
         reportBody: req.body.reportBody
           ? req.body.reportBody
           : targetObject.reportBody,
@@ -180,6 +146,15 @@ router.patch(
           data: body,
         });
       }
+      if (correctImage == req.file.path) {
+        fs.unlinkSync(`./${targetObject.objectImage}`);
+        cloudinary.uploader.upload(req.file.path,
+          async (image) => {
+            correctImage = image.url
+          }
+        )
+      }
+
       targetObject.reportTitle = body.reportTitle;
       targetObject.reportBody = body.reportBody;
       targetObject.objectImage = correctImage;
