@@ -3,19 +3,24 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const cloudinary = require('cloudinary');
+const cloudinary = require("cloudinary");
+const sgMail = require("@sendgrid/mail");
 
 const Reservation = require("../Models/ReservationModel");
 const User = require("../Models/UserModel");
+const Code = require("../Models/codeModel");
 const auth = require("../Middleware/auth");
 
-const {cloud_name, api_key, api_secret} = require("../Configs/config")
+const { cloud_name, api_key, api_secret } = require("../Configs/config");
 
 cloudinary.config({
   cloud_name: cloud_name,
   api_key: api_key,
-  api_secret: api_secret
+  api_secret: api_secret,
 });
+
+const { sendGridAPIKey } = require("../Configs/config");
+sgMail.setApiKey(sendGridAPIKey);
 
 router.post("/signup", async (req, res) => {
   const userSchema = Joi.object().keys({
@@ -36,7 +41,7 @@ router.post("/signup", async (req, res) => {
     userLastName: req.body.userLastName,
     phoneNumber: req.body.phoneNumber,
   };
-  console.log(body)
+  console.log(body);
 
   //userSchema.validate(body)
 
@@ -66,39 +71,39 @@ router.post("/signup", async (req, res) => {
   }
 
   try {
-        user = new User({
-          email: req.body.email,
-          password: req.body.password,
-          phoneNumber: req.body.phoneNumber,
-          userFirstName: req.body.userFirstName,
-          userLastName: req.body.userLastName,
-           });
-    
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-    
-        await user.save();
-    
-        const payload = {
-          user: {
-            id: user.id,
-          },
-        };
-    
-        jwt.sign(
-          payload,
-          "randomString",
-          {
-            expiresIn: 10000,
-          },
-          (err, token) => {
-            if (err) throw err;
-            return res.status(200).json({
-              token,
-              user,
-            });
-          }
-        );
+    user = new User({
+      email: req.body.email,
+      password: req.body.password,
+      phoneNumber: req.body.phoneNumber,
+      userFirstName: req.body.userFirstName,
+      userLastName: req.body.userLastName,
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+
+    await user.save();
+
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      "randomString",
+      {
+        expiresIn: 10000,
+      },
+      (err, token) => {
+        if (err) throw err;
+        return res.status(200).json({
+          token,
+          user,
+        });
+      }
+    );
   } catch (err) {
     console.log(err.message);
     //return res.send("Error in Saving");
@@ -182,7 +187,6 @@ router.get("/profile", auth, async (req, res) => {
     res.sendStatus(500);
   }
 });
-
 // GET Request to restore list of Reservations taken by user
 router.get("/takenby/:id", auth, async (req, res) => {
   try {
@@ -215,5 +219,42 @@ router.get("/all", auth, async (req, res) => {
     console.log(err);
     res.sendStatus(500);
   }
+});
+// POST Request for a new Password
+router.post("/newpassword", async (req, res) => {
+  const email = User.find({ email: req.body.email });
+  // if(!email){
+  //   return res.json({
+  //     message: 'Email not found'
+  //   })
+  // }
+  // else{
+  // if email does exist
+  // generate a code
+  const verificationCode =
+    Math.floor(Math.random() * 9).toString() +
+    Math.floor(Math.random() * 9).toString() +
+    Math.floor(Math.random() * 9).toString() +
+    Math.floor(Math.random() * 9).toString();
+  // save the code in DB
+  const newVerificationCode = new Code({
+    email: req.body.email,
+    code: verificationCode,
+    done: false,
+  });
+  await newVerificationCode.save().then(() => {
+    // send that code to email
+
+    const codeMessage = {
+      to: "louaibouzaher1@gmail.com",
+      from: "jm_bouzaher@esi.dz",
+      subject: "Verification code for CSE Inventory Account",
+      text: "Here is your code " + verificationCode + "",
+    };
+    sgMail.send(codeMessage);
+  });
+  res.sendStatus(200);
+
+  // }
 });
 module.exports = router;
