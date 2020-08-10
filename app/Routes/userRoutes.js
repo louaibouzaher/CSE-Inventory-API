@@ -222,39 +222,67 @@ router.get("/all", auth, async (req, res) => {
 });
 // POST Request for a new Password
 router.post("/newpassword", async (req, res) => {
-  const email = User.find({ email: req.body.email });
-  // if(!email){
-  //   return res.json({
-  //     message: 'Email not found'
-  //   })
-  // }
-  // else{
-  // if email does exist
-  // generate a code
-  const verificationCode =
-    Math.floor(Math.random() * 9).toString() +
-    Math.floor(Math.random() * 9).toString() +
-    Math.floor(Math.random() * 9).toString() +
-    Math.floor(Math.random() * 9).toString();
-  // save the code in DB
-  const newVerificationCode = new Code({
+  const emailFound = await User.findOne({ email: req.body.email });
+  // console.log(emailFound);
+  if (!emailFound) {
+    return res.json({
+      message: "Email not found",
+    });
+  } else {
+    // if email exists in db
+    // generate a code
+    const verificationCode =
+      Math.floor(Math.random() * 9).toString() +
+      Math.floor(Math.random() * 9).toString() +
+      Math.floor(Math.random() * 9).toString() +
+      Math.floor(Math.random() * 9).toString();
+    // save the code in DB
+    const newVerificationCode = new Code({
+      email: req.body.email,
+      code: verificationCode,
+      done: false,
+    });
+    await newVerificationCode.save().then(() => {
+      // send that code to email
+      const codeMessage = {
+        to: "louaibouzaher1@gmail.com",
+        // req.body.email,
+        from: "jm_bouzaher@esi.dz",
+        subject: "Verification code for CSE Inventory Account",
+        text: "Here is your code " + verificationCode + "",
+      };
+      sgMail.send(codeMessage);
+    });
+
+    res.sendStatus(200);
+  }
+});
+
+// POST Request to verify the code and grant access to change password
+router.post("/verifycode", async (req, res) => {
+  const isCodeFound = await Code.findOne({
     email: req.body.email,
-    code: verificationCode,
-    done: false,
+    code: req.body.code,
   });
-  await newVerificationCode.save().then(() => {
-    // send that code to email
-
-    const codeMessage = {
-      to: "louaibouzaher1@gmail.com",
-      from: "jm_bouzaher@esi.dz",
-      subject: "Verification code for CSE Inventory Account",
-      text: "Here is your code " + verificationCode + "",
-    };
-    sgMail.send(codeMessage);
-  });
-  res.sendStatus(200);
-
-  // }
+  console.log(isCodeFound);
+  if (!isCodeFound) {
+    return res.json({
+      message: "Invalid Verification Code",
+    });
+  } else {
+    // Grant access to change password and delete the code from db
+    const deletedCode = await Code.findOneAndDelete({
+      email: req.body.email,
+      code: req.body.code,
+    });
+    return res.json({
+      message: "User Can Change Password",
+    });
+  }
+});
+// WILL BE DELETED
+router.get("/codes", async (req, res) => {
+  const allCodes = await Code.find();
+  res.send(allCodes);
 });
 module.exports = router;
