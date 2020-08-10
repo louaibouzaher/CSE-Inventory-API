@@ -43,8 +43,6 @@ router.post("/signup", async (req, res) => {
   };
   console.log(body);
 
-  //userSchema.validate(body)
-
   const result = userSchema.validate(body);
 
   const { error } = result;
@@ -223,7 +221,6 @@ router.get("/all", auth, async (req, res) => {
 // POST Request for a new Password
 router.post("/newpassword", async (req, res) => {
   const emailFound = await User.findOne({ email: req.body.email });
-  // console.log(emailFound);
   if (!emailFound) {
     return res.json({
       message: "Email not found",
@@ -232,6 +229,8 @@ router.post("/newpassword", async (req, res) => {
     // if email exists in db
     // generate a code
     const verificationCode =
+      Math.floor(Math.random() * 9).toString() +
+      Math.floor(Math.random() * 9).toString() +
       Math.floor(Math.random() * 9).toString() +
       Math.floor(Math.random() * 9).toString() +
       Math.floor(Math.random() * 9).toString() +
@@ -251,7 +250,8 @@ router.post("/newpassword", async (req, res) => {
         subject: "Verification code for CSE Inventory Account",
         text: "Here is your code " + verificationCode + "",
       };
-      sgMail.send(codeMessage);
+      console.log("code sent" + verificationCode);
+      // sgMail.send(codeMessage);
     });
 
     res.sendStatus(200);
@@ -264,22 +264,59 @@ router.post("/verifycode", async (req, res) => {
     email: req.body.email,
     code: req.body.code,
   });
-  console.log(isCodeFound);
   if (!isCodeFound) {
     return res.json({
       message: "Invalid Verification Code",
     });
   } else {
     // Grant access to change password and delete the code from db
-    const deletedCode = await Code.findOneAndDelete({
+    const targetCode = await Code.findOne({
       email: req.body.email,
       code: req.body.code,
     });
+    targetCode.done = true;
+    await targetCode.save();
     return res.json({
       message: "User Can Change Password",
     });
   }
 });
+
+// POST Request to change password
+router.post("/newpassword/add", async (req, res) => {
+  const isCodeDone = await Code.findOne({
+    email: req.body.email,
+    code: req.body.code,
+  });
+  if (!isCodeDone) {
+    return res.send("Invalid Verification Code");
+  } else {
+    if (isCodeDone.done) {
+      const targetUser = await User.findOne({
+        email: req.body.email,
+      });
+      const password = req.body.password.toString();
+      if (password.length > 7 && password.length < 73) {
+        targetUser.password = req.body.password;
+        const salt = await bcrypt.genSalt(10);
+        targetUser.password = await bcrypt.hash(targetUser.password, salt);
+        await targetUser.save();
+        // Delete the code in order not to be used again
+        await isCodeDone.delete();
+        // Delete other codes related to the same email
+        await Code.deleteMany({ email: req.body.email });
+        res.send("Password updated successfully");
+      } else {
+        return res.send(
+          "Invalid Password, Passwords should be no less than 8 character and no more than 72"
+        );
+      }
+    } else {
+      res.send("Invalid Request");
+    }
+  }
+});
+
 // WILL BE DELETED
 router.get("/codes", async (req, res) => {
   const allCodes = await Code.find();
