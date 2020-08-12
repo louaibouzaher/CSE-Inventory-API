@@ -11,7 +11,7 @@ const userRoutes = require("./app/Routes/userRoutes");
 const reservationRoutes = require("./app/Routes/reservationRoutes");
 const actionsRoutes = require("./app/Routes/actionsRoutes");
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // app.use("./uploads", express.static);
 

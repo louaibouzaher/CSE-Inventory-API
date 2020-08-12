@@ -88,9 +88,7 @@ router.post("/add", upload.single("objectImage"), async (req, res, next) => {
       data: body,
     });
   }
-  
   try {
-    console.log("hello")
     cloudinary.uploader.upload(req.file.path,
       async (image) => {
         const newItem = new Item({
