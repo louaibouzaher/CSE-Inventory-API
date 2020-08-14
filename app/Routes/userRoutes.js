@@ -211,6 +211,8 @@ router.get("/all", auth, async (req, res) => {
       userFirstName: user.userFirstName,
       userLastName: user.userLastName,
       phoneNumber: user.phoneNumber,
+      email: user.email,
+      profileImage: user.profileImage,
     }));
     res.json(filteredAllusers);
   } catch (err) {
