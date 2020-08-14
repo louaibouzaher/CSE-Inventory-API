@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
 
 const LostObjectSchema = mongoose.Schema({
-  reportBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User',},
+  reportBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   reportTitle: { type: String, required: true },
   reportBody: { type: String, required: false },
-  objectImage: { type: String, required: true },
-  objectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' }, // in case it's a CSE Item
+  objectImage: {
+    type: String,
+    default:
+      "https://res.cloudinary.com/daonikhft/image/upload/v1597364668/Screenshot_2020-08-07_at_3.17.40_PM_qzw54m.png",
+  },
+  objectId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" }, // in case it's a CSE Item
 });
 
 const LostObject = mongoose.model("LostObject", LostObjectSchema);

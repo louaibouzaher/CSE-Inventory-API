@@ -316,7 +316,36 @@ router.post("/newpassword/add", async (req, res) => {
     }
   }
 });
+// GET Request to get notifications
+// router.get("/mynotifications", auth, async (req, res) => {
+//   try {
+//     const reservations = await Reservation.find({
+//       reservationBy: req.user.id,
+//     }).populate("Item");
 
+//     if (reservations.length > 0) {
+//       // Verify the time interval
+//       const dateCheck = (startsAt, endsAt) => {
+//         if (endsAt === "Date Not Defined") {
+//           return  `You didn't declare in which day you will return this item`
+//         }
+
+//       };
+
+//       res.json({
+//         notifications,
+//         message: "Push Notifications",
+//       });
+//     } else {
+//       res.json({
+//         message: "No notifications",
+//       });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     res.sendStatus(500);
+//   }
+// });
 // WILL BE DELETED
 router.get("/codes", async (req, res) => {
   const allCodes = await Code.find();

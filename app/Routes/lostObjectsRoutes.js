@@ -34,13 +34,6 @@ router.get("/all", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const object = await lostObject.findById(req.params.id).populate("imageId");
-    //res.contentType('image/png');
-    /*const finalObject = {
-      object,
-
-    }*/
-    //object.imageId.finalImg.image to get the image
-    //res.send(object.imageId.finalImg.image)
     res.send(object);
   } catch (err) {
     console.log(err);
@@ -180,23 +173,29 @@ router.patch(
 router.delete("/delete/:id", auth, async (req, res) => {
   const deletedObject = await lostObject.findById(req.params.id);
   if (deletedObject) {
-    try {
-      fs.unlinkSync(`./${deletedObject.objectImage}`);
-      const oldImage = await Image.findById(deletedObject.imageId);
-      await oldImage.delete();
-      const actionRelated = await Action.findOne({
-        lostObjectId: deletedObject._id,
-      });
-      actionRelated.done = true,
-        await actionRelated.save()
-      await deletedObject.delete();
-      res.status(202).send("Object Removed Successfully");
-    } catch (err) {
-      console.log(err);
-      res.status(404).send("Object Not Found");
-    }
-  } else {
+if(deletedObject.reportBy.id == req.user.id ) {
+  try {
+    fs.unlinkSync(`./${deletedObject.objectImage}`);
+    const oldImage = await Image.findById(deletedObject.imageId);
+    await oldImage.delete();
+    const actionRelated = await Action.findOne({
+      lostObjectId: deletedObject._id,
+    });
+    actionRelated.done = true,
+      await actionRelated.save()
+    await deletedObject.delete();
+    res.status(202).send("Object Removed Successfully");
+  } catch (err) {
+    console.log(err);
     res.status(500).send("Server Error");
+  }
+} else{
+  res.json({
+    message: 'You cant delete it' 
+  })
+}
+  } else {
+    res.status(404).send("Object Not Found");
   }
 });
 
