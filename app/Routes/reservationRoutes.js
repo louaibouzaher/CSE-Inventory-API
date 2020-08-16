@@ -83,26 +83,58 @@ router.post("/takenow/:id", auth, async (req, res) => {
   }
 
   const reservations = await Reservation.find();
+  var dates = []
 
   for (const reservation of reservations) {
-    if (reservation.objectsNeeded.includes(req.params.id)) {
+    if (reservation.objectsNeeded.indexOf(req.params.id) !== -1) {
       let from = new Date(
         reservation.startsAt.slice(0, 4),
         reservation.startsAt.slice(5, 7) - 1,
         reservation.startsAt.slice(8)
       );
+      dates.push(from)
       let to = new Date(
         reservation.endsAt.slice(0, 4),
         reservation.endsAt.slice(5, 7) - 1,
         reservation.endsAt.slice(8)
       );
 
-      if (today >= from && today <= to) {
-        return res.status(400).json({
-          msg: "Can't make new reservation",
-        });
+      if (today >= from) {
+        if (today <= to) {
+          console.log("startCheck between from and to")
+          return res.status(400).json({
+            msg: "Can't make new reservation",
+          });
+        }
       }
+    } else {
+      console.log("NOOOOOOOOOOOO !")
     }
+  }
+  if (dates.length != 0) {
+    let reservationEnds = new Date(Math.min(...dates))
+    let dd = reservationEnds.getDate();
+    let mm = reservationEnds.getMonth() + 1;
+    let yyyy = reservationEnds.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var dateEnd = yyyy + '-' + mm + '-' + dd;
+  } else {
+    let currentDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+    let dd = currentDate.getDate()
+    let mm = currentDate.getMonth() + 1
+    let yyyy = currentDate.getFullYear()
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    var dateEnd = yyyy + '-' + mm + '-' + dd;
   }
 
   try {
@@ -111,13 +143,14 @@ router.post("/takenow/:id", auth, async (req, res) => {
       reservationTitle: req.body.reservationTitle,
       reservationBody: req.body.reservationBody,
       startsAt: dateStart,
-      endsAt: "Date Not Defined",
+      endsAt: dateEnd,
       objectsNeeded: [`${req.params.id}`],
       allowedUsers: req.body.allowedUsers,
     });
     await newReservation.save();
     const newAction = new Action({
       reservationId: newReservation._id,
+      type: 'reservation',
       done: false,
     });
     await newAction.save().then(
@@ -203,7 +236,7 @@ router.post("/add", auth, async (req, res, next) => {
             });
           }
         } else {
-          if (endCheck >= from ) {
+          if (endCheck >= from) {
             console.log("endCheck after from")
             return res.status(400).json({
               msg: "Can't make new reservation",
@@ -320,7 +353,7 @@ router.patch("/edit/:id", auth, async (req, res) => {
           const editedReservation = await Reservation.findById(req.params.id);
           const newAction = new Action({
             reservationId: editedReservation._id,
-            type:'reservation',
+            type: 'reservation',
             done: false,
           });
           await newAction.save().then(
