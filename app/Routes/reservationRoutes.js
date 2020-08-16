@@ -230,6 +230,7 @@ router.post("/add", auth, async (req, res, next) => {
     await newReservation.save();
     const newAction = new Action({
       reservationId: newReservation._id,
+      type: 'reservation',
       done: false,
     });
     await newAction.save().then(
@@ -319,6 +320,7 @@ router.patch("/edit/:id", auth, async (req, res) => {
           const editedReservation = await Reservation.findById(req.params.id);
           const newAction = new Action({
             reservationId: editedReservation._id,
+            type:'reservation',
             done: false,
           });
           await newAction.save().then(

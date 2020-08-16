@@ -15,7 +15,7 @@ const Report = require("../Models/ReportModel");
 const Action = require("../Models/ActionModel");
 
 const { cloud_name, api_key, api_secret } = require("../Configs/config");
-const e = require("express");
+
 
 cloudinary.config({
   cloud_name: cloud_name,
@@ -91,6 +91,7 @@ router.post(
         await newReport.save();
         const newAction = new Action({
           reportId: newReport._id,
+          type:'report'
         });
         await newAction.save();
         return res.send({
@@ -160,6 +161,7 @@ router.patch(
         const editedReport = await Report.findById(req.params.id);
         const newAction = new Action({
           reportId: editedReport._id,
+          type:'report'
         });
         await newAction.save().then(
           res.json({

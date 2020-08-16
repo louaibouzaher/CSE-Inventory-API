@@ -84,6 +84,7 @@ router.post(
 
           const newAction = new Action({
             lostObjectId: newLostObject._id,
+            type:'lostObject'
           });
 
           await newAction.save()
@@ -154,6 +155,7 @@ router.patch(
       await targetObject.save();
       const newAction = new Action({
         lostObjectId: targetObject._id,
+        type:'lostObject'
       });
       await newAction.save();
       res.status(202).json({

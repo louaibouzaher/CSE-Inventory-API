@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Action = require("../Models/ActionModel");
-const { read } = require("fs");
+
 
 // GET Request to all Actions
 router.get("/all", async (req, res) => {
