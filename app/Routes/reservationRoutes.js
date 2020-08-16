@@ -59,7 +59,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
     mm = '0' + mm;
   }
   var dateStart = yyyy + '-' + mm + '-' + dd;
-  
+
   const body = {
     reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
@@ -146,6 +146,7 @@ router.post("/add", auth, async (req, res, next) => {
     objectsNeeded: Joi.array().items(Joi.string()),
     allowedUsers: Joi.array().items(Joi.string()),
   });
+
   const body = {
     reservationBy: req.user.id,
     reservationTitle: req.body.reservationTitle,
@@ -173,7 +174,7 @@ router.post("/add", auth, async (req, res, next) => {
 
   for (const reservation of reservations) {
     for (const object of req.body.objectsNeeded) {
-      if (reservation.objectsNeeded.includes(object)) {
+      if (reservation.objectsNeeded.indexOf(object) !== -1) {
         let from = new Date(
           reservation.startsAt.slice(0, 4),
           reservation.startsAt.slice(5, 7) - 1,
@@ -184,17 +185,34 @@ router.post("/add", auth, async (req, res, next) => {
           reservation.endsAt.slice(5, 7) - 1,
           reservation.endsAt.slice(8)
         );
-        let check = new Date(
+        let startCheck = new Date(
           req.body.startsAt.slice(0, 4),
-          reservation.startsAt.slice(5, 7) - 1,
-          reservation.startsAt.slice(8)
+          req.body.startsAt.slice(5, 7) - 1,
+          req.body.startsAt.slice(8)
         );
-
-        if (check >= from && check <= to) {
-          return res.status(400).json({
-            msg: "Can't make new reservation",
-          });
+        let endCheck = new Date(
+          req.body.endsAt.slice(0, 4),
+          req.body.endsAt.slice(5, 7) - 1,
+          req.body.endsAt.slice(8)
+        );
+        if (startCheck >= from) {
+          if (startCheck <= to) {
+            console.log("startCheck between from and to")
+            return res.status(400).json({
+              msg: "Can't make new reservation",
+            });
+          }
+        } else {
+          if (endCheck >= from ) {
+            console.log("endCheck after from")
+            return res.status(400).json({
+              msg: "Can't make new reservation",
+            });
+          }
         }
+
+      } else {
+        console.log("NOOOOOOOOOOOO !")
       }
     }
   }
@@ -234,7 +252,7 @@ router.post("/add", auth, async (req, res, next) => {
 router.patch("/edit/:id", auth, async (req, res) => {
   const originalReservation = await Reservation.findById(req.params.id);
 
-  if (originalReservation.id == req.user.id){
+  if (originalReservation.id == req.user.id) {
     const reservationSchema = Joi.object().keys({
       reservationBy: Joi.string().required(),
       reservationTitle: Joi.string().required(),
@@ -264,10 +282,10 @@ router.patch("/edit/:id", auth, async (req, res) => {
         : originalReservation.allowedUsers,
     };
     const result = reservationSchema.validate(body);
-  
+
     const { error } = result;
     const valid = error == null;
-  
+
     if (!valid) {
       res.status(422).json({
         message: "Invalid request",
@@ -323,41 +341,41 @@ router.patch("/edit/:id", auth, async (req, res) => {
       console.log(err);
       res.status(500);
     }
-  } else{
+  } else {
     res.json({
       message: `You can't edit this reservation`
     })
   }
-  
+
 });
 
 // DELETE Request to delete reservation
 router.delete("/delete/:id", auth, async (req, res) => {
   const deletedReservation = await Reservation.findById(req.params.id);
- if(deletedReservation.reservationBy == req.user.id){
-  if (deletedReservation) {
-    try {
-      const actionRelated = await Action.findOne({
-        reservationId: deletedReservation._id,
-      });
-      actionRelated.done = true,
-      await actionRelated.save()
-      await deletedReservation.delete();
-      res.json({
-        message: "Reservation Deleted",
-      });
-    } catch (err) {
-      console.log(err);
-      res.sendStatus(500);
+  if (deletedReservation.reservationBy == req.user.id) {
+    if (deletedReservation) {
+      try {
+        const actionRelated = await Action.findOne({
+          reservationId: deletedReservation._id,
+        });
+        actionRelated.done = true,
+          await actionRelated.save()
+        await deletedReservation.delete();
+        res.json({
+          message: "Reservation Deleted",
+        });
+      } catch (err) {
+        console.log(err);
+        res.sendStatus(500);
+      }
+    } else {
+      res.sendStatus(404);
     }
   } else {
-    res.sendStatus(404);
+    res.json({
+      message: `You can't delete this reservation`
+    })
   }
- } else{
-  res.json({
-    message: `You can't delete this reservation`
-  })
- }
 });
 
 module.exports = router;
