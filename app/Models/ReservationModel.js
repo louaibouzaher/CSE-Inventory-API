@@ -15,6 +15,7 @@ const ReservationSchema = mongoose.Schema({
     { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: true },
   ],
   allowedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  returned: {type: Boolean, default: false, required: true}
 });
 
 const Reservation = mongoose.model("Reservation", ReservationSchema);
