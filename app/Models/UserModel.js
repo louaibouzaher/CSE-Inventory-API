@@ -12,6 +12,7 @@ const UserSchema = mongoose.Schema({
       "https://www.pngitem.com/pimgs/m/150-1503945_transparent-user-png-default-user-image-png-png.png",
   },
   department: { type: String },
+  tokenNotif: { type: String },
 });
 
 const User = mongoose.model("User", UserSchema);
