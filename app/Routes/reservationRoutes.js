@@ -53,12 +53,12 @@ router.post("/takenow/:id", auth, async (req, res) => {
   var mm = today.getMonth() + 1;
   var yyyy = today.getFullYear();
   if (dd < 10) {
-    dd = '0' + dd;
+    dd = "0" + dd;
   }
   if (mm < 10) {
-    mm = '0' + mm;
+    mm = "0" + mm;
   }
-  var dateStart = yyyy + '-' + mm + '-' + dd;
+  var dateStart = yyyy + "-" + mm + "-" + dd;
 
   const body = {
     reservationBy: req.user.id,
@@ -83,7 +83,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
   }
 
   const reservations = await Reservation.find();
-  var dates = []
+  var dates = [];
 
   for (const reservation of reservations) {
     if (reservation.objectsNeeded.indexOf(req.params.id) !== -1) {
@@ -92,7 +92,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
         reservation.startsAt.slice(5, 7) - 1,
         reservation.startsAt.slice(8)
       );
-      dates.push(from)
+      dates.push(from);
       let to = new Date(
         reservation.endsAt.slice(0, 4),
         reservation.endsAt.slice(5, 7) - 1,
@@ -101,40 +101,40 @@ router.post("/takenow/:id", auth, async (req, res) => {
 
       if (today >= from) {
         if (today <= to) {
-          console.log("startCheck between from and to")
+          console.log("startCheck between from and to");
           return res.status(400).json({
             msg: "Can't make new reservation",
           });
         }
       }
     } else {
-      console.log("NOOOOOOOOOOOO !")
+      console.log("NOOOOOOOOOOOO !");
     }
   }
   if (dates.length != 0) {
-    let reservationEnds = new Date(Math.min(...dates))
+    let reservationEnds = new Date(Math.min(...dates));
     let dd = reservationEnds.getDate();
     let mm = reservationEnds.getMonth() + 1;
     let yyyy = reservationEnds.getFullYear();
     if (dd < 10) {
-      dd = '0' + dd;
+      dd = "0" + dd;
     }
     if (mm < 10) {
-      mm = '0' + mm;
+      mm = "0" + mm;
     }
-    var dateEnd = yyyy + '-' + mm + '-' + dd;
+    var dateEnd = yyyy + "-" + mm + "-" + dd;
   } else {
     let currentDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-    let dd = currentDate.getDate()
-    let mm = currentDate.getMonth() + 1
-    let yyyy = currentDate.getFullYear()
+    let dd = currentDate.getDate();
+    let mm = currentDate.getMonth() + 1;
+    let yyyy = currentDate.getFullYear();
     if (dd < 10) {
-      dd = '0' + dd;
+      dd = "0" + dd;
     }
     if (mm < 10) {
-      mm = '0' + mm;
+      mm = "0" + mm;
     }
-    var dateEnd = yyyy + '-' + mm + '-' + dd;
+    var dateEnd = yyyy + "-" + mm + "-" + dd;
   }
 
   try {
@@ -150,7 +150,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
     await newReservation.save();
     const newAction = new Action({
       reservationId: newReservation._id,
-      type: 'reservation',
+      type: "reservation",
       done: false,
     });
     await newAction.save().then(
@@ -167,7 +167,31 @@ router.post("/takenow/:id", auth, async (req, res) => {
     });
   }
 });
-
+// POST Request to return an item
+router.post("/return/:id", async (req, res) => {
+  try {
+    const userReservation = await Reservation.findById(req.params.id);
+    if (userReservation.reservationBy == 'req.user.id') {
+      userReservation.returned = true;
+      await userReservation.save();
+      const relatedAction = await Action.findOne({
+        reservationId: req.params.id,
+      });
+      relatedAction.done = true;
+      await relatedAction.save();
+      res.json({
+        message: "Successfully returned",
+      });
+    } else {
+      res.json({
+        message: "You can not return this item",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
 // POST Request to add a new reservation
 router.post("/add", auth, async (req, res, next) => {
   const reservationSchema = Joi.object().keys({
@@ -230,22 +254,21 @@ router.post("/add", auth, async (req, res, next) => {
         );
         if (startCheck >= from) {
           if (startCheck <= to) {
-            console.log("startCheck between from and to")
+            console.log("startCheck between from and to");
             return res.status(400).json({
               msg: "Can't make new reservation",
             });
           }
         } else {
           if (endCheck >= from) {
-            console.log("endCheck after from")
+            console.log("endCheck after from");
             return res.status(400).json({
               msg: "Can't make new reservation",
             });
           }
         }
-
       } else {
-        console.log("NOOOOOOOOOOOO !")
+        console.log("NOOOOOOOOOOOO !");
       }
     }
   }
@@ -263,7 +286,7 @@ router.post("/add", auth, async (req, res, next) => {
     await newReservation.save();
     const newAction = new Action({
       reservationId: newReservation._id,
-      type: 'reservation',
+      type: "reservation",
       done: false,
     });
     await newAction.save().then(
@@ -353,7 +376,7 @@ router.patch("/edit/:id", auth, async (req, res) => {
           const editedReservation = await Reservation.findById(req.params.id);
           const newAction = new Action({
             reservationId: editedReservation._id,
-            type: 'reservation',
+            type: "reservation",
             done: false,
           });
           await newAction.save().then(
@@ -378,10 +401,9 @@ router.patch("/edit/:id", auth, async (req, res) => {
     }
   } else {
     res.json({
-      message: `You can't edit this reservation`
-    })
+      message: `You can't edit this reservation`,
+    });
   }
-
 });
 
 // DELETE Request to delete reservation
@@ -393,8 +415,7 @@ router.delete("/delete/:id", auth, async (req, res) => {
         const actionRelated = await Action.findOne({
           reservationId: deletedReservation._id,
         });
-        actionRelated.done = true,
-          await actionRelated.save()
+        (actionRelated.done = true), await actionRelated.save();
         await deletedReservation.delete();
         res.json({
           message: "Reservation Deleted",
@@ -408,8 +429,8 @@ router.delete("/delete/:id", auth, async (req, res) => {
     }
   } else {
     res.json({
-      message: `You can't delete this reservation`
-    })
+      message: `You can't delete this reservation`,
+    });
   }
 });
 
