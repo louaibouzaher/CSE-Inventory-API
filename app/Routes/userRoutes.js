@@ -186,15 +186,20 @@ router.get("/profile", auth, async (req, res) => {
   }
 });
 // GET Request to restore list of Reservations taken by user
-router.get("/takenby/:id", auth, async (req, res) => {
+router.get("/myreservations", auth, async (req, res) => {
   try {
-    const takenByUser = await Reservation.find({
+    const myReservations = await Reservation.find({
       reservationBy: req.user.id,
+      returned: false,
     })
       .populate("Item")
       .populate("User");
+
+    myReservations.map((reservation) => {
+      delete reservation.reservationBy.password;
+    });
     res.json({
-      takenByUser,
+      myReservations,
       message: "all items taken by user are successfully sent",
     });
   } catch (err) {
@@ -266,6 +271,7 @@ router.post("/verifycode", async (req, res) => {
     email: req.body.email,
     code: req.body.code,
   });
+  console.log(isCodeFound);
   if (!isCodeFound) {
     return res.json({
       message: "Invalid Verification Code",
@@ -319,7 +325,7 @@ router.post("/newpassword/add", async (req, res) => {
   }
 });
 // WILL BE DELETED
-router.get("/codes", auth, async (req, res) => {
+router.get("/codes", async (req, res) => {
   const allCodes = await Code.find();
   res.send(allCodes);
 });
