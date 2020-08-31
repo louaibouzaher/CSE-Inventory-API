@@ -32,6 +32,7 @@ router.post("/signup", async (req, res) => {
     phoneNumber: Joi.string().min(3).max(30).required(),
     userFirstName: Joi.string().required(),
     userLastName: Joi.string().required(),
+    role: Joi.string().required()
   });
 
   const body = {
@@ -40,6 +41,7 @@ router.post("/signup", async (req, res) => {
     userFirstName: req.body.userFirstName,
     userLastName: req.body.userLastName,
     phoneNumber: req.body.phoneNumber,
+    role: req.body.role
   };
   console.log(body);
 
@@ -75,6 +77,7 @@ router.post("/signup", async (req, res) => {
       phoneNumber: req.body.phoneNumber,
       userFirstName: req.body.userFirstName,
       userLastName: req.body.userLastName,
+      role: req.body.role
     });
 
     const salt = await bcrypt.genSalt(10);

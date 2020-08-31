@@ -13,6 +13,7 @@ const UserSchema = mongoose.Schema({
   },
   department: { type: String },
   tokenNotif: { type: String },
+  role: {type: String}
 });
 
 const User = mongoose.model("User", UserSchema);
