@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const cloudinary = require("cloudinary");
 const sgMail = require("@sendgrid/mail");
-
 const Reservation = require("../Models/ReservationModel");
 const User = require("../Models/UserModel");
 const Code = require("../Models/codeModel");
