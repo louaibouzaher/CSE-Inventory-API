@@ -31,7 +31,8 @@ router.post("/signup", async (req, res) => {
     phoneNumber: Joi.string().min(3).max(30).required(),
     userFirstName: Joi.string().required(),
     userLastName: Joi.string().required(),
-    role: Joi.string().required()
+    role: Joi.string().required(),
+    tokenNotif: Joi.string().required(),
   });
 
   const body = {
@@ -40,7 +41,8 @@ router.post("/signup", async (req, res) => {
     userFirstName: req.body.userFirstName,
     userLastName: req.body.userLastName,
     phoneNumber: req.body.phoneNumber,
-    role: req.body.role
+    role: req.body.role,
+    tokenNotif: req.body.tokenNotif,
   };
   console.log(body);
 
@@ -76,7 +78,8 @@ router.post("/signup", async (req, res) => {
       phoneNumber: req.body.phoneNumber,
       userFirstName: req.body.userFirstName,
       userLastName: req.body.userLastName,
-      role: req.body.role
+      role: req.body.role,
+      tokenNotif: req.body.tokenNotif,
     });
 
     const salt = await bcrypt.genSalt(10);
@@ -106,7 +109,7 @@ router.post("/signup", async (req, res) => {
     );
   } catch (err) {
     console.log(err.message);
-    //return res.send("Error in Saving");
+    return res.send("Error in Saving");
   }
 });
 

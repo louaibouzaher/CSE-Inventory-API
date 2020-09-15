@@ -12,9 +12,9 @@ const UserSchema = mongoose.Schema({
       "https://www.pngitem.com/pimgs/m/150-1503945_transparent-user-png-default-user-image-png-png.png",
   },
   department: { type: String },
-  tokenNotif: { type: String },
-  role: {type: String}
-});
+  tokenNotif: { type: String, required: true },
+  role: {type: String},
+  });
 
 const User = mongoose.model("User", UserSchema);
 module.exports = User;
