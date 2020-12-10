@@ -7,11 +7,10 @@ module.exports = async (req, res, next) => {
   const token = req.header('Authorization').replace('Bearer ', '')
   //const token = tokens
   if (!token) return res.status(401).json({ message: "Auth Error" });
-
   try {
     const decoded = jwt.verify(token, "secret");
     const user = await User.findById(decoded.user.id)
-    if (role[user.role].find(function (url) { return url == req.baseUrl })) {
+    if (role[user.role].find(function (url) { return url == req.baseUrl + req.url })) {
       req.user = decoded
       next();
     }
