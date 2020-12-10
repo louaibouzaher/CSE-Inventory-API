@@ -14,8 +14,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // app.use("./uploads", express.static);
 
-const cors = require("cors")
-app.use(cors())
 
 app.get("/", (req, res) => {
   res.send("Welcome to CSE Inventory API");

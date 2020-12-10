@@ -20,7 +20,7 @@ cloudinary.config({
   api_secret: api_secret,
 });
 
-const cors = require("cors");
+/*const cors = require("cors");
 const whitelist = ["https://cse-inventory.herokuapp.com/"]
 const corsOptions = {
   origin: function (origin, callback) {
@@ -30,10 +30,10 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'))
     }
   }
-}
+}*/
 
 // GET Request to all Items
-router.get("/all", cors(corsOptions), async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     const allItems = await Item.find();
     res.json(allItems);
@@ -55,7 +55,7 @@ router.get("/all", cors(corsOptions), async (req, res) => {
 // });
 
 // GET Request to all available items
-router.get("/available", cors(corsOptions), async (req, res) => {
+router.get("/available", async (req, res) => {
   const allItems = await Item.find();
   const allReservations = await Reservation.find();
   const unreturned = allReservations.filter(
@@ -75,7 +75,7 @@ router.get("/available", cors(corsOptions), async (req, res) => {
 });
 
 // POST Request to Add a new Item
-router.post("/add", cors(corsOptions), upload.single("objectImage"), async (req, res, next) => {
+router.post("/add", upload.single("objectImage"), async (req, res, next) => {
   const itemSchema = Joi.object().keys({
     objectName: Joi.string().required(),
     objectDescription: Joi.string(),
@@ -122,7 +122,7 @@ router.post("/add", cors(corsOptions), upload.single("objectImage"), async (req,
 });
 
 // Get Request to get an Item specified by Id
-router.get("/get/:id", cors(corsOptions), async (req, res) => {
+router.get("/get/:id", async (req, res) => {
   try {
     let item = await Item.findById(req.params.id);
     if (item) {
@@ -140,7 +140,7 @@ router.get("/get/:id", cors(corsOptions), async (req, res) => {
 });
 
 // DELETE Request to remove an item
-router.delete("/delete/:id", cors(corsOptions), async (req, res) => {
+router.delete("/delete/:id", async (req, res) => {
   try {
     const deletedItem = await Item.findById(req.params.id);
     if (deletedItem) {
