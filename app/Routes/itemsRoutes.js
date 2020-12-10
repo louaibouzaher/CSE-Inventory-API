@@ -21,8 +21,16 @@ cloudinary.config({
 });
 
 const cors = require("cors");
-
-const corsOptions = require("../Configs/cors")
+const whitelist = ["https://cse-inventory.herokuapp.com/"]
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
 
 // GET Request to all Items
 router.get("/all", cors(corsOptions), async (req, res) => {
