@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const cors = require("cors");
+
 const bodyParser = require("body-parser");
 require("dotenv/config");
 const reportsRoutes = require("./app/Routes/reportsRoutes");
@@ -10,7 +10,6 @@ const itemsRoutes = require("./app/Routes/itemsRoutes");
 const userRoutes = require("./app/Routes/userRoutes");
 const reservationRoutes = require("./app/Routes/reservationRoutes");
 const actionsRoutes = require("./app/Routes/actionsRoutes");
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // app.use("./uploads", express.static);
