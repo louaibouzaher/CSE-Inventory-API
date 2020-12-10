@@ -11,19 +11,13 @@ adminFirebase.initializeApp({
   databaseURL: "https://cse-inventory-api.firebaseio.com",
 });
 const messenger = adminFirebase.messaging();
-// Testing example
-messenger.send({
-  data: {},
-  token: process.env.TEST_TOKEN,
-  notification: {
-    title: "Notification from Backend",
-    body: "some dummy data in body",
-  },
-});
+
 module.exports = messenger;
 
 const pushNotifications = async () => {
-  const unreturnedReservations = await Reservation.find({ returned: false });
+  const unreturnedReservations = await Reservation.find({
+    returned: false,
+  }).populate();
   // Send Reminders about unreturned items
   unreturnedReservations.map((reservation) => {
     // if date not defined
@@ -53,7 +47,4 @@ const pushNotifications = async () => {
     }
   });
 };
-
-setInterval(() => {
-  pushNotifications();
-}, 1000 * 60 * 60 * 24);
+pushNotifications();

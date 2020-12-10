@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-
+require('dotenv/config')
 const role = require('./role');
 const User = require('../Models/UserModel')
 
@@ -8,7 +8,7 @@ module.exports = async (req, res, next) => {
   //const token = tokens
   if (!token) return res.status(401).json({ message: "Auth Error" });
   try {
-    const decoded = jwt.verify(token, "secret");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.user.id)
     if (role[user.role].find(function (url) { return url == req.baseUrl + req.url })) {
       req.user = decoded
