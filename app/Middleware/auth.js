@@ -11,12 +11,12 @@ module.exports = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.user.id)
-    if (role[user.role].find(function (url) { return url == req.baseUrl })) {
+    // if (role[user.role].find(function (url) { return url == req.baseUrl })) {
       req.user = decoded
       next();
-    }
-    else
-      return res.status(401).send('Access Denied: You dont have correct privilege to perform this operation');
+    // }
+    // else
+    //   return res.status(401).send('Access Denied: You dont have correct privilege to perform this operation');
   } catch (e) {
     console.error(e);
     res.status(500).send({ message: "Invalid Token" });

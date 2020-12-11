@@ -95,7 +95,7 @@ router.post("/signup", async (req, res) => {
 
     jwt.sign(
       payload,
-      "randomString",
+      process.env.JWT_SECRET,
       {
         expiresIn: 10000,
       },
@@ -162,7 +162,7 @@ router.post("/login", async (req, res) => {
 
     jwt.sign(
       payload,
-      "secret",
+      process.env.JWT_SECRET,
       {
         expiresIn: 3600,
       },

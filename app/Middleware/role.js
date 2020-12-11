@@ -1,3 +1,3 @@
 module.exports={
-    Admin: ["/items"]
+    Admin: ["/items",'/users','/reservations','/actions',"/reports","/lostobjects"]
 }
