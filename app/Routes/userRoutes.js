@@ -10,7 +10,7 @@ const User = require("../Models/UserModel");
 const Code = require("../Models/codeModel");
 const auth = require("../Middleware/auth");
 
-const { cloud_name, api_key, api_secret } = require("../Configs/config");
+const { cloud_name, api_key, api_secret, secretToken } = require("../Configs/config");
 
 cloudinary.config({
   cloud_name: cloud_name,
@@ -95,7 +95,7 @@ router.post("/signup", async (req, res) => {
 
     jwt.sign(
       payload,
-      "randomString",
+      secretToken,
       {
         expiresIn: 10000,
       },
@@ -162,7 +162,7 @@ router.post("/login", async (req, res) => {
 
     jwt.sign(
       payload,
-      "secret",
+      secretToken,
       {
         expiresIn: 3600,
       },
