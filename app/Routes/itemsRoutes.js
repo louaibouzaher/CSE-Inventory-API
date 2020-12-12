@@ -11,6 +11,8 @@ const upload = multer({
 const Joi = require("joi");
 const Item = require("../Models/ItemModel");
 
+const auth = require("../Middleware/auth")
+
 const { cloud_name, api_key, api_secret } = require("../Configs/config");
 const Reservation = require("../Models/ReservationModel");
 
@@ -75,7 +77,7 @@ router.get("/available", async (req, res) => {
 });
 
 // POST Request to Add a new Item
-router.post("/add", upload.single("objectImage"), async (req, res, next) => {
+router.post("/add", auth, upload.single("objectImage"), async (req, res, next) => {
   const itemSchema = Joi.object().keys({
     objectName: Joi.string().required(),
     objectDescription: Joi.string(),
@@ -140,7 +142,7 @@ router.get("/get/:id", async (req, res) => {
 });
 
 // DELETE Request to remove an item
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", auth, async (req, res) => {
   try {
     const deletedItem = await Item.findById(req.params.id);
     if (deletedItem) {

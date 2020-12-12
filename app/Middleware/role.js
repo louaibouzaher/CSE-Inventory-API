@@ -1,5 +1,7 @@
 module.exports={
     Admin: [
+        "/items/add",
+        "/items/delete/:id",
         "/lostobjects/add", 
         "/lostobjects/edit/:id", 
         "/lostobjects/delete/:id",
@@ -9,6 +11,7 @@ module.exports={
         "/reservations/all",
         "/reservations/takenow/:id",
         "/reservations/add",
+        "/reservations/return/:id",
         "/reservations/edit/:id",
         "/reservations/delete/:id"
     ],
@@ -22,6 +25,7 @@ module.exports={
         "/reservations/all",
         "/reservations/takenow/:id",
         "/reservations/add",
+        "/reservations/return/:id",
         "/reservations/edit/:id",
         "/reservations/delete/:id"
     ]

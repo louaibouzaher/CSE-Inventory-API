@@ -6,7 +6,7 @@ const Reservation = require("../Models/ReservationModel");
 const Action = require("../Models/ActionModel");
 
 // GET Request to list all reservations
-router.get("/all", async (req, res) => {
+router.get("/all", auth, async (req, res) => {
   try {
     const allReservations = await Reservation.find()
       .populate("objectsNeeded")
@@ -23,7 +23,7 @@ router.get("/all", async (req, res) => {
 });
 
 // GET Request for a perticular reservation
-router.get("/:id", async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   try {
     const reservationRequested = await Reservation.findById(req.params.id)
       .populate("objectsNeeded")
@@ -168,7 +168,7 @@ router.post("/takenow/:id", auth, async (req, res) => {
   }
 });
 // POST Request to return an item
-router.post("/return/:id", async (req, res) => {
+router.post("/return/:id", auth, async (req, res) => {
   try {
     const userReservation = await Reservation.findById(req.params.id);
     if (userReservation.reservationBy == 'req.user.id') {
